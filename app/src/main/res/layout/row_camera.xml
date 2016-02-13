@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="5dip" >
+
+    <ImageView
+		android:id="@+id/camera_icon"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_alignParentLeft="true"
+		android:layout_centerVertical="true"
+        android:layout_marginRight="20dp"
+		android:src="@drawable/rpi_camera" />
+
+    <TextView
+		android:id="@+id/camera_name"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_toRightOf="@+id/camera_icon"
+		android:textSize="20sp"
+		android:textStyle="bold"
+		android:text="ssid" />
+
+    <TextView
+		android:id="@+id/camera_address"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_below="@+id/camera_name"
+		android:layout_alignLeft="@+id/camera_name"
+		android:textSize="12sp"
+		android:text="bssid" />
+
+</RelativeLayout>

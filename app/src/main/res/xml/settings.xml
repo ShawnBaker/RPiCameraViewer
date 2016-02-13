@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="@string/general">
+
+		<EditTextPreference
+			android:title="@string/default_camera_name"
+			android:key="@string/settings_default_camera_name"
+            android:defaultValue="@string/camera"
+		/>
+
+        <EditTextPreference
+            android:title="@string/default_port"
+            android:key="@string/settings_default_port"
+            android:defaultValue="@integer/default_port"
+            />
+<!--
+        <ListPreference
+            android:title="@string/json_cameras"
+            android:defaultValue="@string/default_scan_period"
+            android:entries="@array/scan_period_names"
+            android:entryValues="@array/scan_periods"
+            android:key="scan_period"
+            android:summary="%s" />
+
+		<ListPreference
+            android:defaultValue="first"
+            android:entries="@array/pref_network_order_titles"
+            android:entryValues="@array/pref_network_order_values"
+            android:key="network_order"
+            android:summary="%s"
+            android:title="@string/pref_network_order"/>
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="switch_wifi_off_when_not_scanning"
+            android:title="@string/pref_switch_wifi_off_when_not_scanning"
+            android:summary="@string/pref_switch_wifi_off_when_not_scanning_summary" />
+-->
+    </PreferenceCategory>
+
+</PreferenceScreen>
