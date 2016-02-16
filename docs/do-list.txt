@@ -1,22 +1,20 @@
-main activity
-	filter by current network
+main
 	display an empty message if there are no cameras
+	don't do initial scan when coming back from other activities
 
-help activity
-	content
-
-scanner fragment
-	parse SPS and configure MediaCodec from it
+camera
 	
-video activity
-	display a message while waiting for SPS
-	handle connection failure
+help
+
+network
+
+scanner
+	
+video
 
 settings
-	show all / show current network
 
 miscellaneous
 	Play Store
-	github
 	post about it
 	add multicast support
