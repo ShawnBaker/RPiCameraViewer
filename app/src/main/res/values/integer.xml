@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <integer name="default_port">5001</integer>
+    <integer name="default_width">0</integer>
+    <integer name="default_height">0</integer>
+    <integer name="default_fps">15</integer>
+    <integer name="default_bps">1000000</integer>
 </resources>
