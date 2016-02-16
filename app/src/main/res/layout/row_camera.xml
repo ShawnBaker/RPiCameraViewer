@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="5dip" >
+    android:padding="5dp" >
 
     <ImageView
 		android:id="@+id/camera_icon"
@@ -20,8 +20,7 @@
 		android:layout_height="wrap_content"
 		android:layout_toRightOf="@+id/camera_icon"
 		android:textSize="20sp"
-		android:textStyle="bold"
-		android:text="ssid" />
+		android:textStyle="bold" />
 
     <TextView
 		android:id="@+id/camera_address"
@@ -29,7 +28,6 @@
 		android:layout_height="wrap_content"
 		android:layout_below="@+id/camera_name"
 		android:layout_alignLeft="@+id/camera_name"
-		android:textSize="12sp"
-		android:text="bssid" />
+		android:textSize="12sp" />
 
 </RelativeLayout>
