@@ -349,7 +349,7 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 				{
 					setMessage(R.string.error_lost_connection);
 				}
-				Log.d(TAG, ex.toString());
+				//Log.d(TAG, ex.toString());
 				ex.printStackTrace();
 			}
 			decoder.stop();

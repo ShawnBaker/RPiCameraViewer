@@ -230,7 +230,7 @@ public class ScannerFragment extends DialogFragment
 								socket.connect(socketAddress, SOCKET_TIMEOUT);
 
 								// add a camera
-								Log.d(TAG, address);
+								//Log.d(TAG, address);
 								String name = socketAddress.getHostName();
 								if (name == null || name.equals(address))
 								{
