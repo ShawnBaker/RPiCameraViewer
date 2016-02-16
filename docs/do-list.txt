@@ -8,6 +8,7 @@ source
 		multicast raw H.265
 		RTSP
 		Web RTC
+		uv4l
 
 camera
 
@@ -18,6 +19,7 @@ network
 scanner
 	
 video
+	pinch and pan ?
 
 settings
 
