@@ -1,3 +1,4 @@
+// Copyright © 2016 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
 import android.app.AlertDialog;

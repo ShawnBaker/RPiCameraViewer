@@ -1,3 +1,4 @@
+// Copyright © 2016 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer;
 
 import android.app.AlertDialog;
@@ -63,7 +64,6 @@ public class App extends Application
 			}
 		});
         builder.show();
-        //Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
     }
 
     //******************************************************************************
