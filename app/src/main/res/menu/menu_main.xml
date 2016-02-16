@@ -1,16 +1,24 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-      xmlns:app="http://schemas.android.com/apk/res-auto"
-      xmlns:tools="http://schemas.android.com/tools"
-      tools:context=".MainActivity">
+	  xmlns:app="http://schemas.android.com/apk/res-auto"
+	  xmlns:tools="http://schemas.android.com/tools"
+	  tools:context=".activities.MainActivity">
 
-	<item android:id="@+id/action_scan" android:title="@string/scan"
-			android:orderInCategory="1" app:showAsAction="never" />
-	<item android:id="@+id/action_delete_all" android:title="@string/delete_all"
-			android:orderInCategory="2" app:showAsAction="never" />
-	<item android:id="@+id/action_settings" android:title="@string/settings"
-			android:orderInCategory="3" app:showAsAction="never"/>
-	<item android:id="@+id/action_help" android:title="@string/help"
-			android:orderInCategory="4" app:showAsAction="never" />
-	<item android:id="@+id/action_about" android:title="@string/about"
-		  android:orderInCategory="5" app:showAsAction="never" />
+	<item android:id="@+id/action_scan"
+		  android:title="@string/scan"
+		  app:showAsAction="never" />
+	<item android:id="@+id/action_delete_all"
+		  android:title="@string/delete_all"
+		  app:showAsAction="never" />
+	<item android:id="@+id/action_networks"
+		  android:title="@string/networks"
+		  app:showAsAction="never" />
+	<item android:id="@+id/action_settings"
+		  android:title="@string/settings"
+		  app:showAsAction="never"/>
+	<item android:id="@+id/action_help"
+		  android:title="@string/help"
+		  app:showAsAction="never" />
+	<item android:id="@+id/action_about"
+		  android:title="@string/about"
+		  app:showAsAction="never" />
 </menu>
