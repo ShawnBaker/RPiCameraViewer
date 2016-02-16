@@ -1,5 +1,7 @@
 # RPi Camera Viewer
 
+This program plays the raw H.264 video from a Raspberry Pi.
+
 ## Copyright and License
 
 Copyright (C) 2016 Shawn Baker using the [MIT License](https://opensource.org/licenses/MIT).
@@ -8,8 +10,6 @@ Raspberry image by [Martin Bérubé](http://www.how-to-draw-funny-cartoons.com),
 all other images by [Oxygen Team](http://www.oxygen-icons.org).
 
 ## Raspberry Pi Instructions
-
-This program plays the raw H.264 video from a Raspberry Pi.
 
 Use the **raspivid** program to generate the video stream and the **nc** program to send
 the stream out over a specific port.
