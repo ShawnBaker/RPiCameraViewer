@@ -2,8 +2,15 @@ main
 	display an empty message if there are no cameras
 	don't do initial scan when coming back from other activities
 
+source
+	replace multicast with connection type
+		raw H.265 over TCP/IP
+		multicast raw H.265
+		RTSP
+		Web RTC
+
 camera
-	
+
 help
 
 network
