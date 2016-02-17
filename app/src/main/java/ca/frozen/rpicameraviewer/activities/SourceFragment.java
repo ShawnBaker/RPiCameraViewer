@@ -7,10 +7,15 @@ import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.classes.Camera;
@@ -27,6 +32,7 @@ public class SourceFragment extends Fragment
 
 	// instance variables
 	private Source source;
+	private List<Source.ConnectionType> connectionTypes;
 
 	//******************************************************************************
 	// onCreateView
@@ -40,21 +46,10 @@ public class SourceFragment extends Fragment
 	//******************************************************************************
 	// configureForSettings
 	//******************************************************************************
-	public void configureForSettings()
+	public void configureForSettings(Source source)
 	{
 		final View view = getView();
-		RadioGroup group = (RadioGroup) view.findViewById(R.id.source_multicast);
-		group.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener()
-		{
-			@Override
-			public void onCheckedChanged(RadioGroup group, int checkedId)
-			{
-				configureMulticast(view, checkedId == R.id.source_multicast_on, false);
-			}
-		});
-		RadioButton button = (RadioButton) view.findViewById(R.id.source_multicast_default);
-		button.setVisibility(View.GONE);
-		configureMulticast(view, getMulticast(view) == Source.Multicast.On, false);
+		setConnectionTypes(false, false);
 		EditText edit = (EditText) view.findViewById(R.id.source_port);
 		edit.setHint("");
 		edit = (EditText) view.findViewById(R.id.source_width);
@@ -65,51 +60,73 @@ public class SourceFragment extends Fragment
 		edit.setHint("");
 		edit = (EditText) view.findViewById(R.id.source_bps);
 		edit.setHint("");
+		setSource(source);
 	}
 
 	//******************************************************************************
 	// configureForNetwork
 	//******************************************************************************
-	public void configureForNetwork()
+	public void configureForNetwork(Source source)
 	{
-		final View view = getView();
-		RadioGroup group = (RadioGroup) view.findViewById(R.id.source_multicast);
-		group.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener()
-		{
-			@Override
-			public void onCheckedChanged(RadioGroup group, int checkedId)
-			{
-				configureMulticast(view, checkedId == R.id.source_multicast_on, false);
-			}
-		});
-		configureMulticast(view, getMulticast(view) == Source.Multicast.On, false);
+		setConnectionTypes(true, false);
+		setSource(source);
 	}
 
 	//******************************************************************************
 	// configureForCamera
 	//******************************************************************************
-	public void configureForCamera()
+	public void configureForCamera(Source source)
 	{
-		final View view = getView();
-		RadioGroup group = (RadioGroup) view.findViewById(R.id.source_multicast);
-		group.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener()
-		{
-			@Override
-			public void onCheckedChanged(RadioGroup group, int checkedId)
-			{
-				configureMulticast(view, checkedId == R.id.source_multicast_on, true);
-			}
-		});
-		configureMulticast(view, getMulticast(view) == Source.Multicast.On, true);
+		setConnectionTypes(true, true);
+		setSource(source);
 	}
 
 	//******************************************************************************
-	// configureMulticast
+	// setConnectionTypes
 	//******************************************************************************
-	private void configureMulticast(View view, boolean multicast, boolean forCamera)
+	private void setConnectionTypes(boolean includeDefault, final boolean forCamera)
+	{
+		final View view = getView();
+		Spinner spinner = (Spinner) view.findViewById(R.id.source_connection_type);
+		spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+		{
+			@Override
+			public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id)
+			{
+				configureConnectionType(view, connectionTypes.get(position), forCamera);
+			}
+
+			@Override
+			public void onNothingSelected(AdapterView<?> parentView)
+			{
+			}
+		});
+		List<String> names = new ArrayList<String>();
+		connectionTypes = new ArrayList<Source.ConnectionType>();
+		if (includeDefault)
+		{
+			names.add(App.getStr(R.string.default1));
+			connectionTypes.add(Source.ConnectionType.Default);
+		}
+		names.add(App.getStr(R.string.raw_tcp_ip));
+		connectionTypes.add(Source.ConnectionType.RawTcpIp);
+		names.add(App.getStr(R.string.raw_multicast));
+		connectionTypes.add(Source.ConnectionType.RawMulticast);
+		ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(getActivity(),
+				android.R.layout.simple_spinner_item, names);
+		dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		spinner.setAdapter(dataAdapter);
+		configureConnectionType(view, getConnectionType(view), false);
+	}
+
+	//******************************************************************************
+	// configureConnectionType
+	//******************************************************************************
+	private void configureConnectionType(View view, Source.ConnectionType connectionType, boolean forCamera)
 	{
 		TextView tv = (TextView) view.findViewById(R.id.source_address_prompt);
 		EditText edit = (EditText) view.findViewById(R.id.source_address);
+		boolean multicast = connectionType == Source.ConnectionType.RawMulticast;
 		if (!multicast)
 		{
 			edit.setText(forCamera ? (source.address.isEmpty() ? Utils.getBaseIpAddress() : source.address) : "");
@@ -117,9 +134,9 @@ public class SourceFragment extends Fragment
 		else
 		{
 			String address = edit.getText().toString().trim();
-			if (address.length() == 0 || !isMulticastAddress(address))
+			if (address.length() == 0 || checkMulticastAddress(address) < 0)
 			{
-				edit.setText("224.0.0.1");
+				edit.setText("239.0.0.0");
 			}
 		}
 		edit.setEnabled(multicast || forCamera);
@@ -135,8 +152,8 @@ public class SourceFragment extends Fragment
 		View view = getView();
 		Source source = new Source();
 
-		// get the multicast
-		source.multicast = getMulticast(view);
+		// get the connection type
+		source.connectionType = getConnectionType(view);
 
 		// get the address
 		EditText edit = (EditText) view.findViewById(R.id.source_address);
@@ -155,7 +172,7 @@ public class SourceFragment extends Fragment
 	//******************************************************************************
 	// setSource
 	//******************************************************************************
-	public void setSource(Source source)
+	private void setSource(Source source)
 	{
 		// save the source
 		this.source = source;
@@ -163,18 +180,17 @@ public class SourceFragment extends Fragment
 		// get the view
 		View view = getView();
 
-		// set the multicast
-		RadioGroup multicast = (RadioGroup) view.findViewById(R.id.source_multicast);
-		int id = R.id.source_multicast_default;
-		if (source.multicast == Source.Multicast.Off)
+		// set the connection type
+		Spinner spinner = (Spinner) view.findViewById(R.id.source_connection_type);
+		for (int i = 0; i < connectionTypes.size(); i++)
 		{
-			id = R.id.source_multicast_off;
+			Source.ConnectionType connectionType = connectionTypes.get(i);
+			if (connectionType == source.connectionType)
+			{
+				spinner.setSelection(i);
+				break;
+			}
 		}
-		else if (source.multicast == Source.Multicast.On)
-		{
-			id = R.id.source_multicast_on;
-		}
-		multicast.check(id);
 
 		// set the address
 		EditText edit = (EditText) view.findViewById(R.id.source_address);
@@ -193,7 +209,7 @@ public class SourceFragment extends Fragment
 	//******************************************************************************
 	private boolean checkCommon(Source editedSource)
 	{
-		if (editedSource.multicast == Source.Multicast.On)
+		if (editedSource.connectionType == Source.ConnectionType.RawMulticast)
 		{
 			// make sure there's an address
 			if (editedSource.address.isEmpty())
@@ -203,10 +219,16 @@ public class SourceFragment extends Fragment
 			}
 
 			// make sure it's a valid multicast address
-			if (!isMulticastAddress(editedSource.address))
+			int check = checkMulticastAddress(editedSource.address);
+			if (check < 0)
 			{
 				App.error(getActivity(), R.string.error_bad_multicast_address);
 				return false;
+			}
+			else if (check == 0)
+			{
+				Toast.makeText(getActivity(), R.string.warning_multicast_address,
+								Toast.LENGTH_LONG).show();
 			}
 		}
 
@@ -298,8 +320,8 @@ public class SourceFragment extends Fragment
 		}
 
 		// make sure the address is a valid URL
-		Source.Multicast multicast = camera.getMulticast();
-		if (multicast == Source.Multicast.Off &&
+		Source.ConnectionType connectionType = camera.getConnectionType();
+		if (connectionType == Source.ConnectionType.RawTcpIp &&
 			!Patterns.WEB_URL.matcher(camera.source.address).matches())
 		{
 			App.error(getActivity(), R.string.error_bad_address);
@@ -311,21 +333,12 @@ public class SourceFragment extends Fragment
 	}
 
 	//******************************************************************************
-	// getMulticast
+	// getConnectionType
 	//******************************************************************************
-	private Source.Multicast getMulticast(View view)
+	private Source.ConnectionType getConnectionType(View view)
 	{
-		RadioGroup multicast = (RadioGroup) view.findViewById(R.id.source_multicast);
-		int id = multicast.getCheckedRadioButtonId();
-		if (id == R.id.source_multicast_off)
-		{
-			return Source.Multicast.Off;
-		}
-		else if (id == R.id.source_multicast_on)
-		{
-			return Source.Multicast.On;
-		}
-		return Source.Multicast.UseDefault;
+		Spinner spinner = (Spinner) view.findViewById(R.id.source_connection_type);
+		return connectionTypes.get(spinner.getSelectedItemPosition());
 	}
 
 	//******************************************************************************
@@ -360,30 +373,57 @@ public class SourceFragment extends Fragment
 	}
 
 	//******************************************************************************
-	// isMulticastAddress
+	// checkMulticastAddress
 	//******************************************************************************
-	private boolean isMulticastAddress(String address)
+	private int checkMulticastAddress(String address)
 	{
 		String octets[] = address.split("\\.");
-		boolean ok = false;
+		int result = -1;
 		if (octets.length == 4)
 		{
 			int octet1, octet2, octet3, octet4;
 			try
 			{
-				octet1 = Integer.parseInt(octets[0]);
-				octet2 = Integer.parseInt(octets[1]);
-				octet3 = Integer.parseInt(octets[2]);
-				octet4 = Integer.parseInt(octets[3]);
-				if (octet1 == 224 && octet2 == 0 && octet3 == 0)
+				octet1 = getOctet(octets[0]);
+				octet2 = getOctet(octets[1]);
+				octet3 = getOctet(octets[2]);
+				octet4 = getOctet(octets[3]);
+				if (octet1 >= 0 && octet2 >= 0 && octet3 >= 0 && octet4 >= 0)
 				{
-					ok = true;
+					if (octet1 == 239)
+					{
+						result = 1;
+					}
+					else if (octet1 >= 224 && octet1 <= 239)
+					{
+						result = 0;
+					}
 				}
 			}
 			catch (Exception ec)
 			{
 			}
 		}
-		return ok;
+		return result;
+	}
+
+	//******************************************************************************
+	// getOctet
+	//******************************************************************************
+	private int getOctet(String octetStr)
+	{
+		int value = -1;
+		try
+		{
+			value = Integer.parseInt(octetStr);
+			if (value < 0 || value > 255)
+			{
+				value = -1;
+			}
+		}
+		catch (Exception ec)
+		{
+		}
+		return value;
 	}
 }

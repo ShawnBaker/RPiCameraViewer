@@ -14,7 +14,7 @@ public class Source implements Comparable, Parcelable
 	private final static String TAG = "Source";
 
 	// instance variables
-	public Multicast multicast;
+	public ConnectionType connectionType;
 	public String address;
 	public int port;
 	public int width;
@@ -47,7 +47,7 @@ public class Source implements Comparable, Parcelable
 	{
 		try
 		{
-			multicast = intToMulti(obj.getInt("multicast"));
+			connectionType = intToConType(obj.getInt("connection_type"));
 			address = obj.getString("address");
 			port = obj.getInt("port");
 			width = obj.getInt("width");
@@ -67,7 +67,7 @@ public class Source implements Comparable, Parcelable
 	//******************************************************************************
 	private void initialize()
 	{
-		multicast = Multicast.UseDefault;
+		connectionType = ConnectionType.Default;
 		address = "";
 		port = 0;
 		width = 0;
@@ -82,7 +82,7 @@ public class Source implements Comparable, Parcelable
 	public Source compound(Source source)
 	{
 		Source newSource = new Source();
-		newSource.multicast = (source.multicast != Source.Multicast.UseDefault) ? source.multicast : multicast;
+		newSource.connectionType = (source.connectionType != Source.ConnectionType.Default) ? source.connectionType : connectionType;
 		newSource.address = source.address.isEmpty() ? address : source.address;
 		newSource.port = (source.port != 0) ? source.port : port;
 		newSource.width = (source.width != 0) ? source.width : width;
@@ -98,7 +98,7 @@ public class Source implements Comparable, Parcelable
 	@Override
 	public void writeToParcel(Parcel dest, int flags)
 	{
-		dest.writeInt(multiToInt(multicast));
+		dest.writeInt(conTypeToInt(connectionType));
 		dest.writeString(address);
 		dest.writeInt(port);
 		dest.writeInt(width);
@@ -112,7 +112,7 @@ public class Source implements Comparable, Parcelable
 	//******************************************************************************
 	private void readFromParcel(Parcel in)
 	{
-		multicast = intToMulti(in.readInt());
+		connectionType = intToConType(in.readInt());
 		address = in.readString();
 		port = in.readInt();
 		width = in.readInt();
@@ -163,7 +163,7 @@ public class Source implements Comparable, Parcelable
 		if (otherSource instanceof Source)
 		{
 			Source source = (Source) otherSource;
-			result = multiToInt(multicast) - multiToInt(source.multicast);
+			result = conTypeToInt(connectionType) - conTypeToInt(source.connectionType);
 			if (result == 0)
 			{
 				result = address.compareTo(source.address);
@@ -198,7 +198,7 @@ public class Source implements Comparable, Parcelable
 	@Override
 	public String toString()
 	{
-		return multicast + "," + address + "," + port + "," + width + "x" + height + "," + fps + "," + bps;
+		return connectionType + "," + address + "," + port + "," + width + "x" + height + "," + fps + "," + bps;
 	}
 
 	//******************************************************************************
@@ -209,7 +209,7 @@ public class Source implements Comparable, Parcelable
 		try
 		{
 			JSONObject obj = new JSONObject();
-			obj.put("multicast", multiToInt(multicast));
+			obj.put("connection_type", conTypeToInt(connectionType));
 			obj.put("address", address);
 			obj.put("port", port);
 			obj.put("width", width);
@@ -226,32 +226,32 @@ public class Source implements Comparable, Parcelable
 	}
 
 	//******************************************************************************
-	// intToMulti
+	// intToConType
 	//******************************************************************************
-	private Multicast intToMulti(int n)
+	private ConnectionType intToConType(int n)
 	{
-		if (n == 2) return Multicast.Off;
-		if (n == 1) return Multicast.On;
-		return Multicast.UseDefault;
+		if (n == 2) return ConnectionType.RawMulticast;
+		if (n == 1) return ConnectionType.RawTcpIp;
+		return ConnectionType.Default;
 	}
 
 	//******************************************************************************
-	// multiToInt
+	// conTypeToInt
 	//******************************************************************************
-	private int multiToInt(Multicast m)
+	private int conTypeToInt(ConnectionType m)
 	{
-		if (m == Multicast.Off) return 2;
-		if (m == Multicast.On) return 1;
+		if (m == ConnectionType.RawMulticast) return 2;
+		if (m == ConnectionType.RawTcpIp) return 1;
 		return 0;
 	}
 
 	//******************************************************************************
-	// Multicast
+	// ConnectionType
 	//******************************************************************************
-	public enum Multicast
+	public enum ConnectionType
 	{
-		UseDefault,
-		On,
-		Off
+		Default,
+		RawTcpIp,
+		RawMulticast
 	}
 }

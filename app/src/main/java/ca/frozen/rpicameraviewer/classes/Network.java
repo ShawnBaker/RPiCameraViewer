@@ -188,10 +188,7 @@ public class Network implements Comparable, Parcelable
 	}
 
 	//******************************************************************************
-	// getMulticast
+	// getConnectionType
 	//******************************************************************************
-	public Source.Multicast getMulticast()
-	{
-		return getSource().multicast;
-	}
+	public Source.ConnectionType getConnectionType() { return getSource().connectionType; }
 }

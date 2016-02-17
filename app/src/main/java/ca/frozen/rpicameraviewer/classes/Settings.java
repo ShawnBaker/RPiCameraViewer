@@ -70,7 +70,7 @@ public class Settings
 		cameraNameColor = App.getClr(R.color.accent);
 		showAllCameras = false;
 		source = new Source();
-		source.multicast = Source.Multicast.Off;
+		source.connectionType = Source.ConnectionType.RawTcpIp;
 		source.port = App.getInt(R.integer.default_port);
 		source.fps = App.getInt(R.integer.default_fps);
 		source.bps = App.getInt(R.integer.default_bps);

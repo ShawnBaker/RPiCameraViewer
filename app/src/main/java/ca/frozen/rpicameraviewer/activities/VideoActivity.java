@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.content.ContextCompat;
@@ -21,7 +22,10 @@ import android.widget.TextView;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.MulticastSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -138,7 +142,7 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 	{
 		if (decoder != null)
 		{
-			if (decoder.init(holder.getSurface(), camera))
+			if (decoder.init(holder.getSurface()))
 			{
 				decoder.start();
 			}
@@ -182,7 +186,8 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 		private final static int SOCKET_TIMEOUT = 200;
 		private final static int BUFFER_TIMEOUT = 10000;
 		private final static int FINISH_TIMEOUT = 5000;
-		private final static int BUFFER_SIZE = 16384;
+		private final static int MULTICAST_BUFFER_SIZE = 16384;
+		private final static int TCPIP_BUFFER_SIZE = 16384;
 		private final static int NAL_SIZE_INC = 4096;
 		private final static int MAX_READ_ERRORS = 300;
 
@@ -190,16 +195,31 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 		private MediaCodec decoder;
 		private MediaFormat format;
 		private Surface surface;
+		private WifiManager.MulticastLock multicastLock = null;
 
 		//******************************************************************************
 		// init
 		//******************************************************************************
-		public boolean init(Surface surface, Camera camera)
+		public boolean init(Surface surface)
 		{
 			try
 			{
-				decoder = MediaCodec.createDecoderByType("video/avc");
+				// save the surface
 				this.surface = surface;
+
+				// get the multicast lock if necessary
+				if (camera.getSource().connectionType == Source.ConnectionType.RawMulticast)
+				{
+					WifiManager wifi = (WifiManager) getSystemService(App.getContext().WIFI_SERVICE);
+					if (wifi != null)
+					{
+						multicastLock = wifi.createMulticastLock("rpicamlock");
+						multicastLock.acquire();
+					}
+				}
+
+				// create the decoder
+				decoder = MediaCodec.createDecoderByType("video/avc");
 			}
 			catch (IOException ex)
 			{
@@ -215,17 +235,34 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 		@Override
 		public void run()
 		{
-			Socket socket = new Socket();
+			byte[] buffer = null;
+			Socket socket = null;
+			InputStream inputStream = null;
+			MulticastSocket multicastSocket = null;
+			DatagramPacket multicastPacket = null;
+
 			try
 			{
-				// try to connect to the device
 				Source source = camera.getSource();
-				InetSocketAddress socketAddress = new InetSocketAddress(source.address, source.port);
-				socket.connect(socketAddress, SOCKET_TIMEOUT);
+				if (source.connectionType == Source.ConnectionType.RawMulticast)
+				{
+					buffer = new byte[MULTICAST_BUFFER_SIZE];
+					InetAddress address = InetAddress.getByName(source.address);
+					multicastSocket = new MulticastSocket(source.port);
+					multicastSocket.joinGroup(address);
+					multicastPacket = new DatagramPacket(buffer, buffer.length);
+				}
+				else
+				{
+					// connect to the camera and get an input stream
+					buffer = new byte[TCPIP_BUFFER_SIZE];
+					socket = new Socket();
+					InetSocketAddress socketAddress = new InetSocketAddress(source.address, source.port);
+					socket.connect(socketAddress, SOCKET_TIMEOUT);
+					inputStream = socket.getInputStream();
+				}
 
 				// read from the socket
-				InputStream stream = socket.getInputStream();
-				byte[] buffer = new byte[BUFFER_SIZE];
 				byte[] nal = new byte[NAL_SIZE_INC];
 				int nalLen = 0;
 				int numZeroes = 0;
@@ -233,10 +270,27 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 				long presentationTime = System.nanoTime() / 1000;
 				boolean gotSPS = false;
 				boolean gotHeader = false;
+				ByteBuffer[] inputBuffers = null;
+				//byte[] readBuffer = null;
 				while (!Thread.interrupted())
 				{
-					int len = stream.read(buffer);
+					// read from the stream
+					int len = 0;
+					if (source.connectionType == Source.ConnectionType.RawMulticast)
+					{
+						multicastSocket.receive(multicastPacket);
+						//readBuffer = multicastPacket.getData();
+						//int offset = multicastPacket.getOffset();
+						len = multicastPacket.getLength();
+						//len = buffer.length;
+					}
+					else
+					{
+						len = inputStream.read(buffer);
+					}
 					//Log.d(TAG, String.format("len = %d", len));
+
+					// process the input buffer
 					if (len > 0)
 					{
 						numReadErrors = 0;
@@ -274,6 +328,7 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 												decoder.configure(format, surface, null, 0);
 												decoder.start();
 												hideMessage();
+												inputBuffers = decoder.getInputBuffers();
 												gotSPS = true;
 											}
 											if (gotSPS)
@@ -281,7 +336,8 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 												int index = decoder.dequeueInputBuffer(BUFFER_TIMEOUT);
 												if (index >= 0)
 												{
-													ByteBuffer inputBuffer = decoder.getInputBuffer(index);
+													ByteBuffer inputBuffer = inputBuffers[index];
+													//ByteBuffer inputBuffer = decoder.getInputBuffer(index);
 													inputBuffer.put(nal, 0, nalLen);
 													decoder.queueInputBuffer(index, 0, nalLen, presentationTime, 0);
 													presentationTime += 66666;
@@ -328,15 +384,10 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 						int index = decoder.dequeueOutputBuffer(info, BUFFER_TIMEOUT);
 						if (index >= 0)
 						{
-							decoder.getOutputBuffer(index);
 							decoder.releaseOutputBuffer(index, true);
 						}
 					}
 				}
-
-				// close things
-				stream.close();
-				socket.close();
 			}
 			catch (Exception ex)
 			{
@@ -352,7 +403,39 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 				//Log.d(TAG, ex.toString());
 				ex.printStackTrace();
 			}
-			decoder.stop();
+
+			try
+			{
+				// close things
+				if (inputStream != null)
+				{
+					inputStream.close();
+				}
+				if (socket != null)
+				{
+					socket.close();
+				}
+
+				// stop the decoder
+				if (decoder != null)
+				{
+					decoder.stop();
+					decoder = null;
+				}
+
+				// release the multicast lock
+				if (multicastLock != null)
+				{
+					if (multicastLock.isHeld())
+					{
+						multicastLock.release();
+					}
+					multicastLock = null;
+				}
+			}
+			catch (Exception ex)
+			{
+			}
 		}
 
 		//******************************************************************************

@@ -203,10 +203,10 @@ public class Camera implements Comparable, Parcelable
 	}
 
 	//******************************************************************************
-	// getMulticast
+	// getConnectionType
 	//******************************************************************************
-	public Source.Multicast getMulticast()
+	public Source.ConnectionType getConnectionType()
 	{
-		return getSource().multicast;
+		return getSource().connectionType;
 	}
 }

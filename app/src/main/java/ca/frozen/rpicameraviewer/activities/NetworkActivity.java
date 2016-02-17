@@ -52,8 +52,7 @@ public class NetworkActivity extends AppCompatActivity
 
 		// set the source fragment
 		sourceFragment = (SourceFragment)getSupportFragmentManager().findFragmentById(R.id.network_source);
-		sourceFragment.setSource(network.source);
-		sourceFragment.configureForNetwork();
+		sourceFragment.configureForNetwork(network.source);
 	}
 
 	//******************************************************************************

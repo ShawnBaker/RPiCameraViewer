@@ -88,8 +88,7 @@ public class CameraActivity extends AppCompatActivity
 
 		// set the source fragment
 		sourceFragment = (SourceFragment)getSupportFragmentManager().findFragmentById(R.id.camera_source);
-		sourceFragment.setSource(camera.source);
-		sourceFragment.configureForCamera();
+		sourceFragment.configureForCamera(camera.source);
 	}
 
 	//******************************************************************************

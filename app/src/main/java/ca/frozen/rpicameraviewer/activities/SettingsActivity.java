@@ -79,8 +79,7 @@ public class SettingsActivity extends AppCompatActivity
 		showCameras.setSelection(settings.showAllCameras ? ALL_CAMERAS : FILTERED_CAMERAS);
 
 		sourceFragment = (SourceFragment) getSupportFragmentManager().findFragmentById(R.id.settings_source);
-		sourceFragment.setSource(settings.source);
-		sourceFragment.configureForSettings();
+		sourceFragment.configureForSettings(settings.source);
 	}
 
 	//******************************************************************************

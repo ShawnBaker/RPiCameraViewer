@@ -8,42 +8,18 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="10dp"
         android:orientation="horizontal" >
 
         <TextView
-            android:text="@string/use_multicast"
+            android:text="@string/connection_type"
             android:layout_width="@dimen/prompt_width"
             android:layout_height="wrap_content"
             android:textSize="16sp" />
 
-        <RadioGroup
-            android:id="@+id/source_multicast"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal" >
-
-            <RadioButton
-                android:id="@+id/source_multicast_default"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/default1" />
-
-            <RadioButton
-                android:id="@+id/source_multicast_off"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/off" />
-
-            <RadioButton
-                android:id="@+id/source_multicast_on"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/on" />
-
-        </RadioGroup>
-
-        <Switch
+        <Spinner
+            android:id="@+id/source_connection_type"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 

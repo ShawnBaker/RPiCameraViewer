@@ -9,6 +9,8 @@
     <string name="camera_name">Camera Name</string>
     <string name="cancel">Cancel</string>
     <string name="color">Color</string>
+    <string name="connection_type">Connection Type</string>
+    <string name="continue1">Continue</string>
     <string name="default1">Default</string>
     <string name="default_camera_name">Default Camera Name</string>
     <string name="default_port">Default Port</string>
@@ -24,7 +26,7 @@
     <string name="error_bad_height">The height must be a positive number or empty.</string>
     <string name="error_bad_port" formatted="false">The port number must be between %d and %d.</string>
     <string name="error_bad_width">The width must be a positive number or empty.</string>
-    <string name="error_bad_multicast_address">The multicast address must start with 224.0.0</string>
+    <string name="error_bad_multicast_address">The multicast address must be between 224.0.0.0 and 239.0.0.0</string>
     <string name="error_couldnt_connect">Couldn\'t connect to the camera.</string>
     <string name="error_lost_connection">Lost the connection to the camera.</string>
     <string name="error_name_already_exists">That name already exists.</string>
@@ -65,18 +67,18 @@
     <string name="network">Network</string>
     <string name="networks">Networks</string>
     <string name="no">No</string>
-    <string name="off">Off</string>
+    <string name="num_new_cameras_found" formatted="false">Number of new cameras found: %d</string>
     <string name="ok">OK</string>
     <string name="ok_to_delete_all_cameras">Are you sure you want to delete all the cameras?</string>
     <string name="ok_to_delete_all_networks">Are you sure you want to delete all the networks and all the cameras?</string>
     <string name="ok_to_delete_camera">Are you sure you want to delete this camera?</string>
     <string name="ok_to_delete_network">Are you sure you want to delete this network and all the cameras for it?</string>
-    <string name="on">On</string>
     <string name="position">Position</string>
     <string name="port">Port</string>
+    <string name="raw_multicast">Multicast raw H.264</string>
+    <string name="raw_tcp_ip">TCP/IP raw H.264</string>
     <string name="save">Save</string>
     <string name="scan">Scan</string>
-    <string name="num_new_cameras_found" formatted="false">Number of new cameras found: %d</string>
     <string name="scanning_for_cameras">Scanning for cameras...</string>
     <string name="scanning_on_port" formatted="false">Scanning on port %d</string>
     <string name="settings">Settings</string>
@@ -91,9 +93,9 @@
     <string name="use_default_hint">use default</string>
     <string name="use_stream_height">use stream height</string>
     <string name="use_stream_width">use stream width</string>
-    <string name="use_multicast">Use Multicast</string>
     <string name="version">Version</string>
     <string name="video">Video</string>
+    <string name="warning_multicast_address">The multicast address should be between 239.0.0.0 and 239.255.255.255.</string>
     <string name="width">Width</string>
     <string name="yes">Yes</string>
 </resources>
