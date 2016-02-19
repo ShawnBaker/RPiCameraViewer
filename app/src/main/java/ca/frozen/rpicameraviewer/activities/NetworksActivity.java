@@ -96,6 +96,17 @@ public class NetworksActivity extends AppCompatActivity
 	}
 
 	//******************************************************************************
+	// onPrepareOptionsMenu
+	//******************************************************************************
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu)
+	{
+		MenuItem item = menu.findItem(R.id.action_delete_all);
+		item.setEnabled(Utils.getNetworks().size() != 0);
+		return true;
+	}
+
+	//******************************************************************************
 	// onOptionsItemSelected
 	//******************************************************************************
 	@Override

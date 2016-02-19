@@ -129,6 +129,23 @@ public class MainActivity extends AppCompatActivity
 	}
 
 	//******************************************************************************
+	// onPrepareOptionsMenu
+	//******************************************************************************
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu)
+	{
+		// disable Delete All if there are no cameras
+		MenuItem item = menu.findItem(R.id.action_delete_all);
+		item.setEnabled(adapter.getCameras().size() != 0);
+
+		// set the network name
+		item = menu.findItem(R.id.action_network);
+		item.setTitle(Utils.getNetworkName());
+
+		return true;
+	}
+
+	//******************************************************************************
 	// onOptionsItemSelected
 	//******************************************************************************
 	@Override
