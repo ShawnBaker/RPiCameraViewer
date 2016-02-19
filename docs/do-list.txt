@@ -1,10 +1,11 @@
 main
-	display an empty message if there are no cameras
 	don't do initial scan when coming back from other activities
+	display network name
 
 video
-	add multicast support
+	fix multicast support
 	pinch and pan ?
 
 miscellaneous
 	post about it
+	get notifications when the network changes
