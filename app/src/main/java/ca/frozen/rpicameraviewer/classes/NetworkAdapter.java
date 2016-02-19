@@ -15,6 +15,11 @@ import ca.frozen.rpicameraviewer.R;
 
 public class NetworkAdapter extends BaseAdapter
 {
+    // local constants
+    private final static int VIEW_NETWORK = 0;
+    private final static int VIEW_MESSAGE = 1;
+    private final static int NUM_VIEWS = 2;
+
     // instance variables
     private List<Network> networks = new ArrayList<>();
 
@@ -31,7 +36,7 @@ public class NetworkAdapter extends BaseAdapter
 	// getCount
 	//******************************************************************************
     @Override
-    public int getCount() { return networks.size(); }
+	public int getCount() { return (networks.size() > 0) ? networks.size() : 1; }
 
 	//******************************************************************************
 	// getItem
@@ -39,7 +44,7 @@ public class NetworkAdapter extends BaseAdapter
     @Override
     public Object getItem(int position)
     {
-        return networks.get(position);
+		return (networks.size() > 0) ? networks.get(position) : new Network();
     }
 
 	//******************************************************************************
@@ -48,7 +53,21 @@ public class NetworkAdapter extends BaseAdapter
     @Override
     public long getItemId(int position) { return 0; }
 
-	//******************************************************************************
+    /******************************************************
+     * getViewTypeCount
+     ******************************************************/
+    @Override
+    public int getViewTypeCount() { return NUM_VIEWS; }
+
+    /******************************************************
+     * getItemViewType
+     ******************************************************/
+    public int getItemViewType(int position)
+    {
+        return (networks.size() > 0) ? VIEW_NETWORK : VIEW_MESSAGE;
+    }
+
+    //******************************************************************************
 	// getView
 	//******************************************************************************
     @Override
@@ -62,15 +81,23 @@ public class NetworkAdapter extends BaseAdapter
         if (convertView == null)
         {
 	        LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = inflater.inflate(R.layout.row_network, null);
+            convertView = inflater.inflate((type == VIEW_NETWORK) ? R.layout.row_network : R.layout.row_message, null);
         }
 
-		// get the network for this row
-		Network network = networks.get(position);
+        if (type == VIEW_NETWORK)
+        {
+            // get the network for this row
+            Network network = networks.get(position);
 
-        // set the views
-		TextView name = (TextView)convertView.findViewById(R.id.network_name);
-		name.setText(network.name);
+            // set the name
+            TextView name = (TextView) convertView.findViewById(R.id.network_name);
+            name.setText(network.name);
+        }
+        else
+        {
+			TextView msg = (TextView) convertView.findViewById(R.id.message);
+			msg.setText(R.string.no_networks);
+        }
 
 		// return the view
         return convertView;

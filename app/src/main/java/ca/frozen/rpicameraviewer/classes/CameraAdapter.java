@@ -17,6 +17,11 @@ import ca.frozen.rpicameraviewer.classes.Camera;
 
 public class CameraAdapter extends BaseAdapter
 {
+	// local constants
+	private final static int VIEW_CAMERA = 0;
+	private final static int VIEW_MESSAGE = 1;
+	private final static int NUM_VIEWS = 2;
+
 	// instance variables
 	private List<Camera> cameras = new ArrayList<>();
 
@@ -50,7 +55,7 @@ public class CameraAdapter extends BaseAdapter
 	// getCount
 	//******************************************************************************
 	@Override
-	public int getCount() { return cameras.size(); }
+	public int getCount() { return (cameras.size() > 0) ? cameras.size() : 1; }
 
 	//******************************************************************************
 	// getItem
@@ -58,7 +63,7 @@ public class CameraAdapter extends BaseAdapter
 	@Override
 	public Object getItem(int position)
 	{
-		return cameras.get(position);
+		return (cameras.size() > 0) ? cameras.get(position) : new Camera();
 	}
 
 	//******************************************************************************
@@ -66,6 +71,20 @@ public class CameraAdapter extends BaseAdapter
 	//******************************************************************************
 	@Override
 	public long getItemId(int position) { return 0; }
+
+	/******************************************************
+	 * getViewTypeCount
+	 ******************************************************/
+	@Override
+	public int getViewTypeCount() { return NUM_VIEWS; }
+
+	/******************************************************
+	 * getItemViewType
+	 ******************************************************/
+	public int getItemViewType(int position)
+	{
+		return (cameras.size() > 0) ? VIEW_CAMERA : VIEW_MESSAGE;
+	}
 
 	//******************************************************************************
 	// getView
@@ -81,20 +100,28 @@ public class CameraAdapter extends BaseAdapter
 		if (convertView == null)
 		{
 			LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			convertView = inflater.inflate(R.layout.row_camera, null);
+			convertView = inflater.inflate((type == VIEW_CAMERA) ? R.layout.row_camera : R.layout.row_message, null);
 		}
 
-		// get the camera for this row
-		final Camera camera = cameras.get(position);
+		if (type == VIEW_CAMERA)
+		{
+			// get the camera for this row
+			Camera camera = cameras.get(position);
 
-		// get the views
-		TextView name = (TextView)convertView.findViewById(R.id.camera_name);
-		TextView address = (TextView)convertView.findViewById(R.id.camera_address);
+			// get the views
+			TextView name = (TextView) convertView.findViewById(R.id.camera_name);
+			TextView address = (TextView) convertView.findViewById(R.id.camera_address);
 
-		// set the views
-		Source source = camera.getSource();
-		name.setText(camera.name);
-		address.setText(camera.network.name + ":" + source.address + ":" + source.port);
+			// set the views
+			Source source = camera.getSource();
+			name.setText(camera.name);
+			address.setText(camera.network.name + ":" + source.address + ":" + source.port);
+		}
+		else
+		{
+			TextView msg = (TextView) convertView.findViewById(R.id.message);
+			msg.setText(R.string.no_cameras);
+		}
 
 		// return the view
 		return convertView;
