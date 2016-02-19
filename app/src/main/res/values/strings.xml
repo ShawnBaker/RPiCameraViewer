@@ -67,6 +67,8 @@
     <string name="network">Network</string>
     <string name="networks">Networks</string>
     <string name="no">No</string>
+    <string name="no_cameras">There are no cameras.\n\nTry running a scan.</string>
+    <string name="no_networks">There are no networks.\n\nTry running a scan\nfrom the main screen.</string>
     <string name="num_new_cameras_found" formatted="false">Number of new cameras found: %d</string>
     <string name="ok">OK</string>
     <string name="ok_to_delete_all_cameras">Are you sure you want to delete all the cameras?</string>
