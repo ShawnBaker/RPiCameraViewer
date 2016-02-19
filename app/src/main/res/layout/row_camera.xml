@@ -13,7 +13,7 @@
 		android:layout_alignParentLeft="true"
 		android:layout_centerVertical="true"
         android:layout_marginRight="20dp"
-		android:src="@drawable/rpi_camera" />
+		android:src="@drawable/camera" />
 
     <TextView
 		android:id="@+id/camera_name"
