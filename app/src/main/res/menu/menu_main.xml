@@ -5,6 +5,8 @@
 	  xmlns:tools="http://schemas.android.com/tools"
 	  tools:context=".activities.MainActivity">
 
+	<item android:id="@+id/action_network"
+		  app:showAsAction="always|withText" />
 	<item android:id="@+id/action_scan"
 		  android:title="@string/scan"
 		  app:showAsAction="never" />
