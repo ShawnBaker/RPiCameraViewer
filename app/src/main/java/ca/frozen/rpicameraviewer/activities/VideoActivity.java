@@ -62,12 +62,6 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 		// configure the activity
 		super.onCreate(savedInstanceState);
 
-		// set the full screen and landscape modes
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-				WindowManager.LayoutParams.FLAG_FULLSCREEN);
-		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-
 		// load the settings, networks and cameras
 		Utils.loadData();
 
