@@ -174,7 +174,7 @@ public class ScannerFragment extends DialogFragment
 		// instance variables
 		private WeakReference<ScannerFragment> fragmentWeakRef;
 		private String ipAddress, network;
-		private int port, device, numNewCameras;
+		private int port, device, numDone, numNewCameras;
 
 		//******************************************************************************
 		// DeviceScanner
@@ -196,6 +196,7 @@ public class ScannerFragment extends DialogFragment
 			port = Utils.getDefaultPort();
 			device = 0;
 			numNewCameras = 0;
+			numDone = 0;
 		}
 
 		//******************************************************************************
@@ -209,7 +210,6 @@ public class ScannerFragment extends DialogFragment
 				int i = ipAddress.lastIndexOf('.');
 				final int myDevice = Integer.parseInt(ipAddress.substring(i + 1));
 				final String baseAddress = ipAddress.substring(0, i + 1);
-				device = 0;
 				Runnable runner = new Runnable()
 				{
 					@Override
@@ -246,6 +246,7 @@ public class ScannerFragment extends DialogFragment
 							{
 								//Log.d(TAG, ex.toString());
 							}
+							doneDevice();
 						}
 					}
 				};
@@ -258,7 +259,7 @@ public class ScannerFragment extends DialogFragment
 				}
 
 				// wait for the threads to finish
-				while (!isCancelled() && device < 255)
+				while (!isCancelled() && numDone < 254)
 				{
 					SystemClock.sleep(SLEEP_TIMEOUT);
 				}
@@ -329,10 +330,18 @@ public class ScannerFragment extends DialogFragment
 			if (device < 255)
 			{
 				device++;
-				setStatus(false);
 				return device;
 			}
 			return NO_DEVICE;
+		}
+
+		//******************************************************************************
+		// doneDevice
+		//******************************************************************************
+		private synchronized void doneDevice()
+		{
+			numDone++;
+			setStatus(false);
 		}
 
 		//******************************************************************************
@@ -348,7 +357,7 @@ public class ScannerFragment extends DialogFragment
 					public void run()
 					{
 						message.setText(String.format(App.getStr(R.string.scanning_on_port), port));
-						progress.setProgress(device);
+						progress.setProgress(numDone);
 						status.setText(String.format(App.getStr(R.string.num_new_cameras_found), numNewCameras));
 						if (numNewCameras > 0)
 						{
