@@ -162,36 +162,38 @@ public class SourceFragment extends Fragment
 	private void configureConnectionType(View view, Source.ConnectionType connectionType, boolean forCamera)
 	{
 		EditText addressEdit = (EditText) view.findViewById(R.id.source_address);
+		String address = addressEdit.getText().toString().trim();
+		int port = getNumber(view, R.id.source_port);
+		int defaultPort = App.getInt(R.integer.default_port);
+		int defaultHttpPort = App.getInt(R.integer.default_http_port);
 		if (connectionType == Source.ConnectionType.RawMulticast)
 		{
-			String address = addressEdit.getText().toString().trim();
 			if (address.length() == 0 || checkMulticastAddress(address) < 0)
 			{
 				addressEdit.setText("239.0.0.0");
 			}
-			if (source.port == R.integer.default_http_port)
+			if (port == defaultHttpPort || port < 0)
 			{
-				source.port = R.integer.default_port;
+				port = defaultPort;
 			}
 		}
 		else if (connectionType == Source.ConnectionType.RawHttp)
 		{
-			addressEdit.setText(forCamera ? (source.address.isEmpty() ? Utils.getBaseIpAddress() : source.address) : "");
-			if (source.port == R.integer.default_port)
+			addressEdit.setText(forCamera ? (address.isEmpty() ? Utils.getBaseIpAddress() : address) : "");
+			if (port == defaultPort || port < 0)
 			{
-				source.port = R.integer.default_http_port;
+				port = defaultHttpPort;
 			}
 		}
 		else
 		{
-			addressEdit.setText(forCamera ? (source.address.isEmpty() ? Utils.getBaseIpAddress() : source.address) : "");
-			if (source.port == R.integer.default_http_port)
+			addressEdit.setText(forCamera ? (address.isEmpty() ? Utils.getBaseIpAddress() : address) : "");
+			if (port == defaultHttpPort || port < 0)
 			{
-				source.port = R.integer.default_port;
+				port = defaultPort;
 			}
 		}
-		EditText portEdit = (EditText) view.findViewById(R.id.source_port);
-		portEdit.setText(Integer.toString(source.port));
+		setNumber(view, R.id.source_port, port);
 
 		// enable/disable the address and its prompt
 		boolean enableAddress = connectionType == Source.ConnectionType.RawMulticast || forCamera;
