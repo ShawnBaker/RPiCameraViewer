@@ -48,6 +48,9 @@ public class SourceFragment extends Fragment
 	//******************************************************************************
 	public void configureForSettings(Source source)
 	{
+		// save the source
+		this.source = source;
+
 		final View view = getView();
 		setConnectionTypes(false, false);
 		EditText edit = (EditText) view.findViewById(R.id.source_port);
@@ -60,7 +63,7 @@ public class SourceFragment extends Fragment
 		edit.setHint("");
 		edit = (EditText) view.findViewById(R.id.source_bps);
 		edit.setHint("");
-		setSource(source);
+		setViews();
 	}
 
 	//******************************************************************************
@@ -68,8 +71,11 @@ public class SourceFragment extends Fragment
 	//******************************************************************************
 	public void configureForNetwork(Source source)
 	{
+		// save the source
+		this.source = source;
+
 		setConnectionTypes(true, false);
-		setSource(source);
+		setViews();
 	}
 
 	//******************************************************************************
@@ -77,8 +83,37 @@ public class SourceFragment extends Fragment
 	//******************************************************************************
 	public void configureForCamera(Source source)
 	{
+		// save the source
+		this.source = source;
+
 		setConnectionTypes(true, true);
-		setSource(source);
+		setViews();
+	}
+
+	//******************************************************************************
+	// getSource
+	//******************************************************************************
+	public Source getSource()
+	{
+		// get the view and create a new source
+		View view = getView();
+		Source source = new Source();
+
+		// get the connection type
+		source.connectionType = getConnectionType(view);
+
+		// get the address
+		EditText edit = (EditText) view.findViewById(R.id.source_address);
+		source.address = edit.getText().toString().trim();
+
+		// get the numeric values
+		source.port = getNumber(view, R.id.source_port);
+		source.width = getNumber(view, R.id.source_width);
+		source.height = getNumber(view, R.id.source_height);
+		source.fps = getNumber(view, R.id.source_fps);
+		source.bps = getNumber(view, R.id.source_bps);
+
+		return source;
 	}
 
 	//******************************************************************************
@@ -112,6 +147,8 @@ public class SourceFragment extends Fragment
 		connectionTypes.add(Source.ConnectionType.RawTcpIp);
 		names.add(App.getStr(R.string.raw_multicast));
 		connectionTypes.add(Source.ConnectionType.RawMulticast);
+		names.add(App.getStr(R.string.raw_http));
+		connectionTypes.add(Source.ConnectionType.RawHttp);
 		ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(getActivity(),
 				android.R.layout.simple_spinner_item, names);
 		dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -124,59 +161,50 @@ public class SourceFragment extends Fragment
 	//******************************************************************************
 	private void configureConnectionType(View view, Source.ConnectionType connectionType, boolean forCamera)
 	{
-		TextView tv = (TextView) view.findViewById(R.id.source_address_prompt);
-		EditText edit = (EditText) view.findViewById(R.id.source_address);
-		boolean multicast = connectionType == Source.ConnectionType.RawMulticast;
-		if (!multicast)
+		EditText addressEdit = (EditText) view.findViewById(R.id.source_address);
+		if (connectionType == Source.ConnectionType.RawMulticast)
 		{
-			edit.setText(forCamera ? (source.address.isEmpty() ? Utils.getBaseIpAddress() : source.address) : "");
+			String address = addressEdit.getText().toString().trim();
+			if (address.length() == 0 || checkMulticastAddress(address) < 0)
+			{
+				addressEdit.setText("239.0.0.0");
+			}
+			if (source.port == R.integer.default_http_port)
+			{
+				source.port = R.integer.default_port;
+			}
+		}
+		else if (connectionType == Source.ConnectionType.RawHttp)
+		{
+			addressEdit.setText(forCamera ? (source.address.isEmpty() ? Utils.getBaseIpAddress() : source.address) : "");
+			if (source.port == R.integer.default_port)
+			{
+				source.port = R.integer.default_http_port;
+			}
 		}
 		else
 		{
-			String address = edit.getText().toString().trim();
-			if (address.length() == 0 || checkMulticastAddress(address) < 0)
+			addressEdit.setText(forCamera ? (source.address.isEmpty() ? Utils.getBaseIpAddress() : source.address) : "");
+			if (source.port == R.integer.default_http_port)
 			{
-				edit.setText("239.0.0.0");
+				source.port = R.integer.default_port;
 			}
 		}
-		edit.setEnabled(multicast || forCamera);
-		tv.setEnabled(multicast || forCamera);
+		EditText portEdit = (EditText) view.findViewById(R.id.source_port);
+		portEdit.setText(Integer.toString(source.port));
+
+		// enable/disable the address and its prompt
+		boolean enableAddress = connectionType == Source.ConnectionType.RawMulticast || forCamera;
+		addressEdit.setEnabled(enableAddress);
+		TextView prompt = (TextView) view.findViewById(R.id.source_address_prompt);
+		prompt.setEnabled(enableAddress);
 	}
 
 	//******************************************************************************
-	// getSource
+	// setViews
 	//******************************************************************************
-	public Source getSource()
+	private void setViews()
 	{
-		// get the view and create a new source
-		View view = getView();
-		Source source = new Source();
-
-		// get the connection type
-		source.connectionType = getConnectionType(view);
-
-		// get the address
-		EditText edit = (EditText) view.findViewById(R.id.source_address);
-		source.address = edit.getText().toString().trim();
-
-		// get the numeric values
-		source.port = getNumber(view, R.id.source_port);
-		source.width = getNumber(view, R.id.source_width);
-		source.height = getNumber(view, R.id.source_height);
-		source.fps = getNumber(view, R.id.source_fps);
-		source.bps = getNumber(view, R.id.source_bps);
-
-		return source;
-	}
-
-	//******************************************************************************
-	// setSource
-	//******************************************************************************
-	private void setSource(Source source)
-	{
-		// save the source
-		this.source = source;
-
 		// get the view
 		View view = getView();
 

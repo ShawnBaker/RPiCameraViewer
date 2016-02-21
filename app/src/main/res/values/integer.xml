@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright © 2016 Shawn Baker using the MIT License. -->
 <resources>
+    <integer name="default_bps">1000000</integer>
+    <integer name="default_fps">15</integer>
+    <integer name="default_height">0</integer>
+    <integer name="default_http_port">8080</integer>
     <integer name="default_port">5001</integer>
     <integer name="default_width">0</integer>
-    <integer name="default_height">0</integer>
-    <integer name="default_fps">15</integer>
-    <integer name="default_bps">1000000</integer>
 </resources>

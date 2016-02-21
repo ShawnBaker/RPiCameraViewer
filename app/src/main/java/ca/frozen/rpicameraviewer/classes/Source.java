@@ -230,6 +230,7 @@ public class Source implements Comparable, Parcelable
 	//******************************************************************************
 	private ConnectionType intToConType(int n)
 	{
+		if (n == 3) return ConnectionType.RawHttp;
 		if (n == 2) return ConnectionType.RawMulticast;
 		if (n == 1) return ConnectionType.RawTcpIp;
 		return ConnectionType.Default;
@@ -240,6 +241,7 @@ public class Source implements Comparable, Parcelable
 	//******************************************************************************
 	private int conTypeToInt(ConnectionType m)
 	{
+		if (m == ConnectionType.RawHttp) return 3;
 		if (m == ConnectionType.RawMulticast) return 2;
 		if (m == ConnectionType.RawTcpIp) return 1;
 		return 0;
@@ -252,6 +254,7 @@ public class Source implements Comparable, Parcelable
 	{
 		Default,
 		RawTcpIp,
-		RawMulticast
+		RawMulticast,
+		RawHttp
 	}
 }

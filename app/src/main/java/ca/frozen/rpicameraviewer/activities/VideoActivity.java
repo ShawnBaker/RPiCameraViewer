@@ -20,13 +20,17 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.DatagramPacket;
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.net.Socket;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -180,8 +184,11 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 		private final static int SOCKET_TIMEOUT = 200;
 		private final static int BUFFER_TIMEOUT = 10000;
 		private final static int FINISH_TIMEOUT = 5000;
+		private final static int MULTICAST_BLOCK_SIZE = 2048;
+		private final static int MULTICAST_NUM_BLOCKS = 4;
 		private final static int MULTICAST_BUFFER_SIZE = 16384;
 		private final static int TCPIP_BUFFER_SIZE = 16384;
+		private final static int HTTP_BUFFER_SIZE = 4096;
 		private final static int NAL_SIZE_INC = 4096;
 		private final static int MAX_READ_ERRORS = 300;
 
@@ -230,21 +237,43 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 		public void run()
 		{
 			byte[] buffer = null;
+			byte[] block = null;
+			Source source = null;
 			Socket socket = null;
 			InputStream inputStream = null;
 			MulticastSocket multicastSocket = null;
 			DatagramPacket multicastPacket = null;
+			HttpURLConnection http = null;
 
 			try
 			{
-				Source source = camera.getSource();
+				source = camera.getSource();
 				if (source.connectionType == Source.ConnectionType.RawMulticast)
 				{
-					buffer = new byte[MULTICAST_BUFFER_SIZE];
+					buffer = new byte[MULTICAST_BLOCK_SIZE * MULTICAST_NUM_BLOCKS];
+					block = new byte[MULTICAST_BLOCK_SIZE];
 					InetAddress address = InetAddress.getByName(source.address);
 					multicastSocket = new MulticastSocket(source.port);
 					multicastSocket.joinGroup(address);
-					multicastPacket = new DatagramPacket(buffer, buffer.length);
+					multicastPacket = new DatagramPacket(block, block.length);
+				}
+				else if (source.connectionType == Source.ConnectionType.RawHttp)
+				{
+					buffer = new byte[HTTP_BUFFER_SIZE];
+					URL url = new URL("http://" + source.address + ":" + source.port + "/stream/video.h264");
+					//inputStream = new BufferedInputStream(url.openStream());
+
+					URLConnection connection = url.openConnection();
+					if (connection != null)
+					{
+						http = (HttpURLConnection) connection;
+						http.setRequestProperty("Connection", "close");
+						http.connect();
+						if (http.getResponseCode() == HttpURLConnection.HTTP_OK)
+						{
+							inputStream = http.getInputStream();
+						}
+					}
 				}
 				else
 				{
@@ -265,24 +294,43 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 				boolean gotSPS = false;
 				boolean gotHeader = false;
 				ByteBuffer[] inputBuffers = null;
-				//byte[] readBuffer = null;
 				while (!Thread.interrupted())
 				{
 					// read from the stream
 					int len = 0;
 					if (source.connectionType == Source.ConnectionType.RawMulticast)
 					{
-						multicastSocket.receive(multicastPacket);
+						len = 0;
+						int max = MULTICAST_BLOCK_SIZE * (MULTICAST_NUM_BLOCKS - 1) + 1;
+						while (len < max)
+						{
+							multicastSocket.receive(multicastPacket);
+							int blockLen = multicastPacket.getLength();
+							if (blockLen != 0)
+							{
+								System.arraycopy(block, 0, buffer, len, blockLen);
+								len += blockLen;
+							}
+						}
 						//readBuffer = multicastPacket.getData();
 						//int offset = multicastPacket.getOffset();
-						len = multicastPacket.getLength();
+						//len = multicastPacket.getLength();
 						//len = buffer.length;
+					}
+					else if (source.connectionType == Source.ConnectionType.RawHttp)
+					{
+						len = 0;
+						int max = buffer.length * 9 / 10;
+						while (len < max)
+						{
+							len += inputStream.read(buffer, len, buffer.length - len);
+						}
 					}
 					else
 					{
 						len = inputStream.read(buffer);
 					}
-					//Log.d(TAG, String.format("len = %d", len));
+					Log.d(TAG, String.format("len = %d", len));
 
 					// process the input buffer
 					if (len > 0)
@@ -385,7 +433,21 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 			}
 			catch (Exception ex)
 			{
-				if (socket == null || !socket.isConnected())
+				boolean couldntConnect = false;
+				Source.ConnectionType connectionType = (source != null) ? source.connectionType : Source.ConnectionType.RawTcpIp;
+				if (connectionType == Source.ConnectionType.RawMulticast)
+				{
+					couldntConnect = multicastSocket == null || !multicastSocket.isConnected();
+				}
+				else if (connectionType == Source.ConnectionType.RawHttp)
+				{
+					couldntConnect = http == null;
+				}
+				else
+				{
+					couldntConnect = socket == null || !socket.isConnected();
+				}
+				if (couldntConnect)
 				{
 					setMessage(R.string.error_couldnt_connect);
 					finishHandler.postDelayed(finishRunner, FINISH_TIMEOUT);
@@ -401,14 +463,10 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 			try
 			{
 				// close things
-				if (inputStream != null)
-				{
-					inputStream.close();
-				}
-				if (socket != null)
-				{
-					socket.close();
-				}
+				if (inputStream != null) inputStream.close();
+				if (socket != null) socket.close();
+				if (multicastSocket != null) multicastSocket.close();
+				if (http != null) http.disconnect();
 
 				// stop the decoder
 				if (decoder != null)
