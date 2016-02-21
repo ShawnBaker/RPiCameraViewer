@@ -2,16 +2,20 @@
 package ca.frozen.rpicameraviewer.activities;
 
 import android.app.Activity;
+import android.graphics.Matrix;
+import android.graphics.SurfaceTexture;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Gravity;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.Surface;
+import android.view.TextureView;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
@@ -32,18 +36,27 @@ import ca.frozen.rpicameraviewer.classes.TcpIpReader;
 import ca.frozen.rpicameraviewer.classes.Utils;
 import ca.frozen.rpicameraviewer.R;
 
-public class VideoActivity extends Activity implements SurfaceHolder.Callback
+public class VideoActivity extends Activity implements TextureView.SurfaceTextureListener
 {
 	// public constants
 	public final static String CAMERA = "camera";
 
 	// local constants
 	private final static String TAG = "VideoActivity";
+	private final static float MIN_ZOOM = 0.1f;
+	private final static float MAX_ZOOM = 10;
 
 	// instance variables
 	private Camera camera;
 	private DecoderThread decoder;
+	private TextureView textureView;
 	private TextView nameView, messageView;
+	private ScaleGestureDetector scaleDetector;
+	private GestureDetector simpleListener;
+	private float scale = 1;
+	private float panX = 0;
+	private float panY = 0;
+	private Matrix matrix = new Matrix();
 	private Runnable finishRunner;
 	private Handler finishHandler;
 
@@ -63,10 +76,14 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 		Bundle data = getIntent().getExtras();
 		camera = (Camera)data.getParcelable(CAMERA);
 
-		// get the surface view
+		// set the texture listener
 		setContentView(R.layout.activity_video);
-		SurfaceView surfaceView = (SurfaceView) findViewById(R.id.video_surface);
-		surfaceView.getHolder().addCallback(this);
+		textureView = (TextureView) findViewById(R.id.video_surface);
+		textureView.setSurfaceTextureListener(this);
+
+		// create the gesture recognizers
+		simpleListener = new GestureDetector(this, new SimpleListener());
+		scaleDetector = new ScaleGestureDetector(this, new ScaleListener());
 
 		// configure the name
 		Settings settings = Utils.getSettings();
@@ -115,22 +132,25 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 	}
 
 	//******************************************************************************
-	// surfaceCreated
+	// onTouchEvent
 	//******************************************************************************
 	@Override
-	public void surfaceCreated(SurfaceHolder holder)
+	public boolean onTouchEvent(MotionEvent ev)
 	{
+		simpleListener.onTouchEvent(ev);
+		scaleDetector.onTouchEvent(ev);
+		return true;
 	}
 
 	//******************************************************************************
-	// surfaceChanged
+	// onSurfaceTextureAvailable
 	//******************************************************************************
 	@Override
-	public void surfaceChanged(SurfaceHolder holder, int format, int width,	int height)
+	public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height)
 	{
 		if (decoder != null)
 		{
-			if (decoder.init(holder.getSurface()))
+			if (decoder.init(new Surface(surfaceTexture)))
 			{
 				decoder.start();
 			}
@@ -142,26 +162,155 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 	}
 
 	//******************************************************************************
-	// surfaceDestroyed
+	// onSurfaceTextureSizeChanged
 	//******************************************************************************
 	@Override
-	public void surfaceDestroyed(SurfaceHolder holder)
+	public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height)
+	{
+	}
+
+	//******************************************************************************
+	// onSurfaceTextureDestroyed
+	//******************************************************************************
+	@Override
+	public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture)
 	{
 		finishHandler.removeCallbacks(finishRunner);
 		if (decoder != null)
 		{
 			decoder.interrupt();
 		}
+		return true;
 	}
 
 	//******************************************************************************
-	// surfaceDestroyed
+	// onSurfaceTextureUpdated
+	//******************************************************************************
+	@Override
+	public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture)
+	{
+	}
+
+	//******************************************************************************
+	// onBackPressed
 	//******************************************************************************
 	@Override
 	public void onBackPressed()
 	{
 		super.onBackPressed();
 		decoder.interrupt();
+	}
+
+	//******************************************************************************
+	// adjustPan
+	//******************************************************************************
+	private boolean adjustPan(float scale)
+	{
+		boolean adjusted = false;
+		int w = textureView.getWidth();
+		int h = textureView.getHeight();
+		float dx = (w * scale - w) / 2;
+		float dy = (h * scale - h) / 2;
+		if (panX < -dx)
+		{
+			panX = -dx;
+			adjusted = true;
+		}
+		if (panX > dx)
+		{
+			panX = dx;
+			adjusted = true;
+		}
+		if (panY < -dy)
+		{
+			panY = -dy;
+			adjusted = true;
+		}
+		if (panY > dy)
+		{
+			panY = dy;
+			adjusted = true;
+		}
+		return adjusted;
+	}
+
+	////////////////////////////////////////////////////////////////////////////////
+	// SimpleListener
+	////////////////////////////////////////////////////////////////////////////////
+	private class SimpleListener extends GestureDetector.SimpleOnGestureListener
+	{
+		@Override
+		public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY)
+		{
+			if (scale > 1)
+			{
+				panX -= distanceX;
+				panY -= distanceY;
+				adjustPan(scale);
+				textureView.setTranslationX(panX);
+				textureView.setTranslationY(panY);
+				return true;
+			}
+			return false;
+		}
+
+		@Override
+		public boolean onDoubleTap(MotionEvent e)
+		{
+			scale = 1;
+			textureView.setScaleX(scale);
+			textureView.setScaleY(scale);
+			panX = panY = 0;
+			textureView.setTranslationX(panX);
+			textureView.setTranslationY(panY);
+			return true;
+		}
+	}
+
+	////////////////////////////////////////////////////////////////////////////////
+	// ScaleListener
+	////////////////////////////////////////////////////////////////////////////////
+	private class ScaleListener implements ScaleGestureDetector.OnScaleGestureListener
+	{
+		float startScale = 1;
+
+		@Override
+		public boolean onScale(ScaleGestureDetector detector)
+		{
+			float newScale = startScale * detector.getScaleFactor();
+			newScale = Math.max(MIN_ZOOM, Math.min(newScale, MAX_ZOOM));
+			textureView.setScaleX(newScale);
+			textureView.setScaleY(newScale);
+			if (newScale > 1)
+			{
+				if (adjustPan(newScale))
+				{
+					textureView.setTranslationX(panX);
+					textureView.setTranslationY(panY);
+				}
+			}
+			else if (panX != 0 || panY != 0)
+			{
+				panX = panY = 0;
+				textureView.setTranslationX(panX);
+				textureView.setTranslationY(panY);
+			}
+			return false;
+		}
+
+		@Override
+		public boolean onScaleBegin(ScaleGestureDetector detector)
+		{
+			startScale = scale;
+			return true;
+		}
+
+		@Override
+		public void onScaleEnd(ScaleGestureDetector detector)
+		{
+			float newScale = startScale * detector.getScaleFactor();
+			scale = Math.max(0.1f, Math.min(newScale, 10));
+		}
 	}
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -211,24 +360,6 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 
 				// create the decoder
 				decoder = MediaCodec.createDecoderByType("video/avc");
-
-				// create the reader
-				source = camera.getSource();
-				if (source.connectionType == Source.ConnectionType.RawMulticast)
-				{
-					buffer = new byte[MULTICAST_BUFFER_SIZE];
-					reader = new MulticastReader(source);
-				}
-				else if (source.connectionType == Source.ConnectionType.RawHttp)
-				{
-					buffer = new byte[HTTP_BUFFER_SIZE];
-					reader = new HttpReader(source);
-				}
-				else
-				{
-					buffer = new byte[TCPIP_BUFFER_SIZE];
-					reader = new TcpIpReader(source);
-				}
 			}
 			catch (IOException ex)
 			{
@@ -255,6 +386,24 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 
 			try
 			{
+				// create the reader
+				source = camera.getSource();
+				if (source.connectionType == Source.ConnectionType.RawMulticast)
+				{
+					buffer = new byte[MULTICAST_BUFFER_SIZE];
+					reader = new MulticastReader(source);
+				}
+				else if (source.connectionType == Source.ConnectionType.RawHttp)
+				{
+					buffer = new byte[HTTP_BUFFER_SIZE];
+					reader = new HttpReader(source);
+				}
+				else
+				{
+					buffer = new byte[TCPIP_BUFFER_SIZE];
+					reader = new TcpIpReader(source);
+				}
+
 				// read from the socket
 				while (!Thread.interrupted())
 				{
