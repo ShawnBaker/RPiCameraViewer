@@ -2,43 +2,33 @@
 package ca.frozen.rpicameraviewer.activities;
 
 import android.app.Activity;
-import android.content.pm.ActivityInfo;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.Surface;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.DatagramPacket;
-import java.net.HttpURLConnection;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.MulticastSocket;
-import java.net.Socket;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.classes.Camera;
+import ca.frozen.rpicameraviewer.classes.HttpReader;
+import ca.frozen.rpicameraviewer.classes.MulticastReader;
+import ca.frozen.rpicameraviewer.classes.RawH264Reader;
 import ca.frozen.rpicameraviewer.classes.Settings;
 import ca.frozen.rpicameraviewer.classes.Source;
 import ca.frozen.rpicameraviewer.classes.SpsParser;
+import ca.frozen.rpicameraviewer.classes.TcpIpReader;
 import ca.frozen.rpicameraviewer.classes.Utils;
 import ca.frozen.rpicameraviewer.R;
 
@@ -181,11 +171,8 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 	{
 		// local constants
 		private final static String TAG = "DecoderThread";
-		private final static int SOCKET_TIMEOUT = 200;
 		private final static int BUFFER_TIMEOUT = 10000;
 		private final static int FINISH_TIMEOUT = 5000;
-		private final static int MULTICAST_BLOCK_SIZE = 2048;
-		private final static int MULTICAST_NUM_BLOCKS = 4;
 		private final static int MULTICAST_BUFFER_SIZE = 16384;
 		private final static int TCPIP_BUFFER_SIZE = 16384;
 		private final static int HTTP_BUFFER_SIZE = 4096;
@@ -196,6 +183,9 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 		private MediaCodec decoder;
 		private MediaFormat format;
 		private Surface surface;
+		private Source source = null;
+		private byte[] buffer = null;
+		private RawH264Reader reader = null;
 		private WifiManager.MulticastLock multicastLock = null;
 
 		//******************************************************************************
@@ -221,6 +211,24 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 
 				// create the decoder
 				decoder = MediaCodec.createDecoderByType("video/avc");
+
+				// create the reader
+				source = camera.getSource();
+				if (source.connectionType == Source.ConnectionType.RawMulticast)
+				{
+					buffer = new byte[MULTICAST_BUFFER_SIZE];
+					reader = new MulticastReader(source);
+				}
+				else if (source.connectionType == Source.ConnectionType.RawHttp)
+				{
+					buffer = new byte[HTTP_BUFFER_SIZE];
+					reader = new HttpReader(source);
+				}
+				else
+				{
+					buffer = new byte[TCPIP_BUFFER_SIZE];
+					reader = new TcpIpReader(source);
+				}
 			}
 			catch (IOException ex)
 			{
@@ -236,101 +244,23 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 		@Override
 		public void run()
 		{
-			byte[] buffer = null;
-			byte[] block = null;
-			Source source = null;
-			Socket socket = null;
-			InputStream inputStream = null;
-			MulticastSocket multicastSocket = null;
-			DatagramPacket multicastPacket = null;
-			HttpURLConnection http = null;
+			byte[] nal = new byte[NAL_SIZE_INC];
+			int nalLen = 0;
+			int numZeroes = 0;
+			int numReadErrors = 0;
+			long presentationTime = System.nanoTime() / 1000;
+			boolean gotSPS = false;
+			boolean gotHeader = false;
+			ByteBuffer[] inputBuffers = null;
 
 			try
 			{
-				source = camera.getSource();
-				if (source.connectionType == Source.ConnectionType.RawMulticast)
-				{
-					buffer = new byte[MULTICAST_BLOCK_SIZE * MULTICAST_NUM_BLOCKS];
-					block = new byte[MULTICAST_BLOCK_SIZE];
-					InetAddress address = InetAddress.getByName(source.address);
-					multicastSocket = new MulticastSocket(source.port);
-					multicastSocket.joinGroup(address);
-					multicastPacket = new DatagramPacket(block, block.length);
-				}
-				else if (source.connectionType == Source.ConnectionType.RawHttp)
-				{
-					buffer = new byte[HTTP_BUFFER_SIZE];
-					URL url = new URL("http://" + source.address + ":" + source.port + "/stream/video.h264");
-					//inputStream = new BufferedInputStream(url.openStream());
-
-					URLConnection connection = url.openConnection();
-					if (connection != null)
-					{
-						http = (HttpURLConnection) connection;
-						http.setRequestProperty("Connection", "close");
-						http.connect();
-						if (http.getResponseCode() == HttpURLConnection.HTTP_OK)
-						{
-							inputStream = http.getInputStream();
-						}
-					}
-				}
-				else
-				{
-					// connect to the camera and get an input stream
-					buffer = new byte[TCPIP_BUFFER_SIZE];
-					socket = new Socket();
-					InetSocketAddress socketAddress = new InetSocketAddress(source.address, source.port);
-					socket.connect(socketAddress, SOCKET_TIMEOUT);
-					inputStream = socket.getInputStream();
-				}
-
 				// read from the socket
-				byte[] nal = new byte[NAL_SIZE_INC];
-				int nalLen = 0;
-				int numZeroes = 0;
-				int numReadErrors = 0;
-				long presentationTime = System.nanoTime() / 1000;
-				boolean gotSPS = false;
-				boolean gotHeader = false;
-				ByteBuffer[] inputBuffers = null;
 				while (!Thread.interrupted())
 				{
 					// read from the stream
-					int len = 0;
-					if (source.connectionType == Source.ConnectionType.RawMulticast)
-					{
-						len = 0;
-						int max = MULTICAST_BLOCK_SIZE * (MULTICAST_NUM_BLOCKS - 1) + 1;
-						while (len < max)
-						{
-							multicastSocket.receive(multicastPacket);
-							int blockLen = multicastPacket.getLength();
-							if (blockLen != 0)
-							{
-								System.arraycopy(block, 0, buffer, len, blockLen);
-								len += blockLen;
-							}
-						}
-						//readBuffer = multicastPacket.getData();
-						//int offset = multicastPacket.getOffset();
-						//len = multicastPacket.getLength();
-						//len = buffer.length;
-					}
-					else if (source.connectionType == Source.ConnectionType.RawHttp)
-					{
-						len = 0;
-						int max = buffer.length * 9 / 10;
-						while (len < max)
-						{
-							len += inputStream.read(buffer, len, buffer.length - len);
-						}
-					}
-					else
-					{
-						len = inputStream.read(buffer);
-					}
-					Log.d(TAG, String.format("len = %d", len));
+					int len = reader.read(buffer);
+					//Log.d(TAG, String.format("len = %d", len));
 
 					// process the input buffer
 					if (len > 0)
@@ -433,21 +363,7 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 			}
 			catch (Exception ex)
 			{
-				boolean couldntConnect = false;
-				Source.ConnectionType connectionType = (source != null) ? source.connectionType : Source.ConnectionType.RawTcpIp;
-				if (connectionType == Source.ConnectionType.RawMulticast)
-				{
-					couldntConnect = multicastSocket == null || !multicastSocket.isConnected();
-				}
-				else if (connectionType == Source.ConnectionType.RawHttp)
-				{
-					couldntConnect = http == null;
-				}
-				else
-				{
-					couldntConnect = socket == null || !socket.isConnected();
-				}
-				if (couldntConnect)
+				if (reader == null || !reader.isConnected())
 				{
 					setMessage(R.string.error_couldnt_connect);
 					finishHandler.postDelayed(finishRunner, FINISH_TIMEOUT);
@@ -462,11 +378,11 @@ public class VideoActivity extends Activity implements SurfaceHolder.Callback
 
 			try
 			{
-				// close things
-				if (inputStream != null) inputStream.close();
-				if (socket != null) socket.close();
-				if (multicastSocket != null) multicastSocket.close();
-				if (http != null) http.disconnect();
+				// close the reader
+				if (reader != null)
+				{
+					reader.close();
+				}
 
 				// stop the decoder
 				if (decoder != null)
