@@ -18,13 +18,15 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
-import java.net.InetSocketAddress;
+import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.util.List;
 
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.classes.Camera;
+import ca.frozen.rpicameraviewer.classes.HttpReader;
 import ca.frozen.rpicameraviewer.classes.Source;
+import ca.frozen.rpicameraviewer.classes.TcpIpReader;
 import ca.frozen.rpicameraviewer.classes.Utils;
 import ca.frozen.rpicameraviewer.R;
 
@@ -219,50 +221,64 @@ public class ScannerFragment extends DialogFragment
 						{
 							if (dev == myDevice)
 							{
+								doneDevice(dev);
 								continue;
 							}
+							boolean found = false;
+							String address = baseAddress + Integer.toString(dev);
+
+							// look for a TCP/IP connection
 							try
 							{
 								// try to connect to the device
-								String address = baseAddress + Integer.toString(dev);
-								Socket socket = new Socket();
-								InetSocketAddress socketAddress = new InetSocketAddress(address, port);
-								socket.connect(socketAddress, SOCKET_TIMEOUT);
-
-								// add a camera
-								//Log.d(TAG, address);
-								String name = socketAddress.getHostName();
-								if (name == null || name.equals(address))
+								Socket socket = TcpIpReader.getConnection(address, port);
+								if (socket != null)
 								{
-									name = "";
+									Camera camera = new Camera(network, "", address);
+									addCamera(camera);
+									socket.close();
+									found = true;
 								}
-								Camera camera = new Camera(network, name, address);
-								addCamera(camera);
+							}
+							catch (Exception ex) {}
 
-								// close the connection
-								socket.close();
-							}
-							catch (Exception ex)
+							// look for an HTTP connection
+							if (!found)
 							{
-								//Log.d(TAG, ex.toString());
+								try
+								{
+									address += "/stream/video.h264";
+									HttpURLConnection http = HttpReader.getConnection(address, 8080, true);
+									if (http != null)
+									{
+										Camera camera = new Camera(network, "", address, 8080, Source.ConnectionType.RawHttp);
+										addCamera(camera);
+										http.disconnect();
+										found = true;
+									}
+								}
+								catch (Exception ex) {}
 							}
-							doneDevice();
+							doneDevice(dev);
 						}
 					}
 				};
 
 				// create and start the threads
+				Log.d(TAG, "creating threads");
 				for (int t = 0; t < NUM_THREADS; t++)
 				{
 					Thread thread = new Thread(runner);
 					thread.start();
 				}
+				Log.d(TAG, "threads created");
 
 				// wait for the threads to finish
 				while (!isCancelled() && numDone < 254)
 				{
 					SystemClock.sleep(SLEEP_TIMEOUT);
 				}
+				Log.d(TAG, String.format("threads complete: %d %d", numDone, isCancelled() ? 1 : 0));
 				setStatus(true);
 			}
 			return null;
@@ -327,7 +343,7 @@ public class ScannerFragment extends DialogFragment
 		//******************************************************************************
 		private synchronized int getNextDevice()
 		{
-			if (device < 255)
+			if (device < 254)
 			{
 				device++;
 				return device;
@@ -338,7 +354,7 @@ public class ScannerFragment extends DialogFragment
 		//******************************************************************************
 		// doneDevice
 		//******************************************************************************
-		private synchronized void doneDevice()
+		private synchronized void doneDevice(int device)
 		{
 			numDone++;
 			setStatus(false);

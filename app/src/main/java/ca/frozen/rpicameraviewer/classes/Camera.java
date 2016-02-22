@@ -4,7 +4,6 @@ package ca.frozen.rpicameraviewer.classes;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
-import android.util.MutableBoolean;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,6 +39,18 @@ public class Camera implements Comparable, Parcelable
 		source = new Source();
 		source.address = address;
 		//Log.d(TAG, "values/address: " + toString());
+	}
+
+	//******************************************************************************
+	// Camera
+	//******************************************************************************
+	public Camera(String network, String name, String address, int port,
+				  Source.ConnectionType connectionType)
+	{
+		this(network, name, address);
+		source.port = port;
+		source.connectionType = connectionType;
+		//Log.d(TAG, "values/connectionType: " + toString());
 	}
 
 	//******************************************************************************

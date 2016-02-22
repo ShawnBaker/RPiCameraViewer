@@ -26,9 +26,7 @@ public class TcpIpReader extends RawH264Reader
 		super(source);
 		try
 		{
-			socket = new Socket();
-			InetSocketAddress socketAddress = new InetSocketAddress(source.address, source.port);
-			socket.connect(socketAddress, SOCKET_TIMEOUT);
+			socket = getConnection(source.address, source.port);
 			inputStream = socket.getInputStream();
 		}
 		catch (Exception ex) {}
@@ -80,5 +78,24 @@ public class TcpIpReader extends RawH264Reader
 			catch (Exception ex) {}
 			socket = null;
 		}
+	}
+
+	//******************************************************************************
+	// getConnection
+	//******************************************************************************
+	public static Socket getConnection(String baseAddress, int port)
+	{
+		Socket socket = null;
+		try
+		{
+			socket = new Socket();
+			InetSocketAddress socketAddress = new InetSocketAddress(baseAddress, port);
+			socket.connect(socketAddress, SOCKET_TIMEOUT);
+		}
+		catch (Exception ex)
+		{
+			socket = null;
+		}
+		return socket;
 	}
 }

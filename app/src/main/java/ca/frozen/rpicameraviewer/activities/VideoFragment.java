@@ -485,6 +485,10 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 					buffer = new byte[TCPIP_BUFFER_SIZE];
 					reader = new TcpIpReader(source);
 				}
+				if (!reader.isConnected())
+				{
+					throw new Exception();
+				}
 
 				// read from the source
 				while (!Thread.interrupted())

@@ -1,7 +1,6 @@
 // Copyright © 2016 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.classes;
 
-import android.net.Uri;
 import android.util.Log;
 
 import java.io.InputStream;
@@ -14,6 +13,8 @@ public class HttpReader extends RawH264Reader
 {
 	// local constants
 	private final static String TAG = "HttpReader";
+	private final static int CONNECT_TIMEOUT = 5000;
+	private final static int TEST_CONNECT_TIMEOUT = 200;
 	private final static int BLOCK_SIZE = 2048;
 	private final static int NUM_START_BLOCKS = 10;
 	private final static int MAX_BLOCKS = 100;
@@ -42,24 +43,8 @@ public class HttpReader extends RawH264Reader
 			}
 			numBlocks = NUM_START_BLOCKS;
 
-			// get the URL
-			String address = source.address;
-			int i = address.indexOf("/");
-			if (i != -1)
-			{
-				address = address.substring(0, i) + ":" + source.port + address.substring(i);
-			}
-			else
-			{
-				address += ":" + source.port;
-			}
-			address = "http://" + address;
-			URL url = new URL(address);
-
 			// get the connection
-			http = (HttpURLConnection) url.openConnection();
-			http.setRequestProperty("Connection", "close");
-			http.connect();
+			http = getConnection(source.address, source.port, false);
 
 			// get the input stream
 			inputStream = http.getInputStream();
@@ -113,7 +98,7 @@ public class HttpReader extends RawH264Reader
 	//******************************************************************************
 	public boolean isConnected()
 	{
-		return http != null;
+		return reader != null;
 	}
 
 	//******************************************************************************
@@ -148,6 +133,42 @@ public class HttpReader extends RawH264Reader
 			catch (Exception ex) {}
 			http = null;
 		}
+	}
+
+
+	//******************************************************************************
+	// getConnection
+	//******************************************************************************
+	public static HttpURLConnection getConnection(String baseAddress, int port, boolean test)
+	{
+		HttpURLConnection http = null;
+		try
+		{
+			// get the URL
+			String address = baseAddress;
+			int i = address.indexOf("/");
+			if (i != -1)
+			{
+				address = address.substring(0, i) + ":" + port + address.substring(i);
+			}
+			else
+			{
+				address += ":" + port;
+			}
+			address = "http://" + address;
+			URL url = new URL(address);
+
+			// get the connection
+			http = (HttpURLConnection) url.openConnection();
+			http.setConnectTimeout(test ? TEST_CONNECT_TIMEOUT : CONNECT_TIMEOUT);
+			http.setRequestProperty("Connection", "close");
+			http.connect();
+		}
+		catch (Exception ex)
+		{
+			http = null;
+		}
+		return http;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////
