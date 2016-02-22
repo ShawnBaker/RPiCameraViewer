@@ -1,18 +1,21 @@
 // Copyright © 2016 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.classes;
 
+import android.app.FragmentManager;
 import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import ca.frozen.rpicameraviewer.R;
+import ca.frozen.rpicameraviewer.activities.ScannerFragment;
 import ca.frozen.rpicameraviewer.classes.Camera;
 
 public class CameraAdapter extends BaseAdapter
@@ -24,6 +27,17 @@ public class CameraAdapter extends BaseAdapter
 
 	// instance variables
 	private List<Camera> cameras = new ArrayList<>();
+	private View.OnClickListener scanButtonOnClickListener = null;
+
+	//******************************************************************************
+	// refresh
+	//******************************************************************************
+	public CameraAdapter(View.OnClickListener onClickListener)
+	{
+		super();
+
+		scanButtonOnClickListener = onClickListener;
+	}
 
 	//******************************************************************************
 	// refresh
@@ -119,8 +133,10 @@ public class CameraAdapter extends BaseAdapter
 		}
 		else
 		{
-			TextView msg = (TextView) convertView.findViewById(R.id.message);
+			TextView msg = (TextView) convertView.findViewById(R.id.message_text);
 			msg.setText(R.string.no_cameras);
+			Button scan = (Button) convertView.findViewById(R.id.message_scan);
+			scan.setOnClickListener(scanButtonOnClickListener);
 		}
 
 		// return the view

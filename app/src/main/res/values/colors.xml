@@ -9,4 +9,5 @@
     <color name="primary">#931414</color>
     <color name="primary_dark">#801010</color>
     <color name="progress_background">#BBBBBB</color>
+    <color name="white">#FFFFFF</color>
 </resources>

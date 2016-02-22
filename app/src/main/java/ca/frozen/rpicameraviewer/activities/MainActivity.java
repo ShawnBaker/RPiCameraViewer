@@ -55,9 +55,16 @@ public class MainActivity extends AppCompatActivity
 		Utils.loadData();
 
 		// set the list adapter
-		ListView listView = (ListView)findViewById(R.id.cameras);
-		adapter = new CameraAdapter();
+		adapter = new CameraAdapter(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View v)
+			{
+				startScanner();
+			}
+		});
 		adapter.refresh();
+		ListView listView = (ListView)findViewById(R.id.cameras);
 		listView.setAdapter(adapter);
 		registerForContextMenu(listView);
 		listView.setOnItemClickListener(new AdapterView.OnItemClickListener()

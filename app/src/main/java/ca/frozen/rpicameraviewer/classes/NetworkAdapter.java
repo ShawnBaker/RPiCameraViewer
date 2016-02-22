@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -95,8 +96,10 @@ public class NetworkAdapter extends BaseAdapter
         }
         else
         {
-			TextView msg = (TextView) convertView.findViewById(R.id.message);
+			TextView msg = (TextView) convertView.findViewById(R.id.message_text);
 			msg.setText(R.string.no_networks);
+            Button scan = (Button) convertView.findViewById(R.id.message_scan);
+            scan.setVisibility(View.GONE);
         }
 
 		// return the view
