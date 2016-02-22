@@ -1,11 +1,18 @@
 main
 	don't do initial scan when coming back from other activities
-	display network name
+	warn about starting video for a camera on another network
 
+scanner
+	get camera names from host name
+	generated camera names should be per network
+		use the last octet to get the number
+	
 video
 	fix multicast support
-	pinch and pan ?
+	swipe between cameras
 
 miscellaneous
 	post about it
 	get notifications when the network changes
+	create a view with multiple video fragments
+	test with higher (and lower) frame and bit rates
