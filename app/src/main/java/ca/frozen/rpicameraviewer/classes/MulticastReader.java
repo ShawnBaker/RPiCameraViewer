@@ -104,8 +104,21 @@ public class MulticastReader extends RawH264Reader
 	{
 		if (reader != null)
 		{
-			reader.interrupt();
+			try
+			{
+				reader.interrupt();
+			}
+			catch (Exception ex) {}
 			reader = null;
+		}
+		if (socket != null)
+		{
+			try
+			{
+				socket.close();
+			}
+			catch (Exception ex) {}
+			socket = null;
 		}
 	}
 

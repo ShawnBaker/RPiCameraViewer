@@ -1,6 +1,7 @@
 // Copyright © 2016 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.classes;
 
+import android.net.Uri;
 import android.util.Log;
 
 import java.io.InputStream;
@@ -41,8 +42,19 @@ public class HttpReader extends RawH264Reader
 			}
 			numBlocks = NUM_START_BLOCKS;
 
-			URL url = new URL("http://" + source.address + ":" + source.port + "/stream/video.h264");
-			//inputStream = new BufferedInputStream(url.openStream());
+			// get the URL
+			String address = source.address;
+			int i = address.indexOf("/");
+			if (i != -1)
+			{
+				address = address.substring(0, i) + ":" + source.port + address.substring(i);
+			}
+			else
+			{
+				address += ":" + source.port;
+			}
+			address = "http://" + address;
+			URL url = new URL(address);
 
 			// get the connection
 			http = (HttpURLConnection) url.openConnection();
@@ -57,7 +69,10 @@ public class HttpReader extends RawH264Reader
 			reader.setPriority(reader.getPriority() + 1);
 			reader.start();
 		}
-		catch (Exception ex) {}
+		catch (Exception ex)
+		{
+			ex.printStackTrace();
+		}
 	}
 
 	//******************************************************************************
@@ -108,8 +123,30 @@ public class HttpReader extends RawH264Reader
 	{
 		if (reader != null)
 		{
-			reader.interrupt();
+			try
+			{
+				reader.interrupt();
+			}
+			catch (Exception ex) {}
 			reader = null;
+		}
+		if (inputStream != null)
+		{
+			try
+			{
+				inputStream.close();
+			}
+			catch (Exception ex) {}
+			inputStream = null;
+		}
+		if (http != null)
+		{
+			try
+			{
+				http.disconnect();
+			}
+			catch (Exception ex) {}
+			http = null;
 		}
 	}
 

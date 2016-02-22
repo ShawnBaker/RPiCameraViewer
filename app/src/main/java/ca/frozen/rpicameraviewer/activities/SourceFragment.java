@@ -1,6 +1,7 @@
 // Copyright © 2016 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Patterns;
@@ -239,6 +240,29 @@ public class SourceFragment extends Fragment
 	//******************************************************************************
 	private boolean checkCommon(Source editedSource)
 	{
+		// check the address, remove the port if necessary
+		if (!editedSource.address.isEmpty())
+		{
+			try
+			{
+				Uri uri = Uri.parse(editedSource.address);
+				int port = uri.getPort();
+				if (port != -1)
+				{
+					editedSource.address = editedSource.address.replace(":" + port, "");
+					if (editedSource.port <= 0)
+					{
+						editedSource.port = port;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				App.error(getActivity(), R.string.error_bad_address);
+				return false;
+			}
+		}
+
 		if (editedSource.connectionType == Source.ConnectionType.RawMulticast)
 		{
 			// make sure there's an address
@@ -356,6 +380,28 @@ public class SourceFragment extends Fragment
 		{
 			App.error(getActivity(), R.string.error_bad_address);
 			return false;
+		}
+
+		if (connectionType == Source.ConnectionType.RawHttp)
+		{
+			// check the address
+			if (!camera.source.address.isEmpty())
+			{
+				try
+				{
+					Uri uri = Uri.parse(camera.source.address);
+					String scheme = uri.getScheme();
+					if (scheme != null && !scheme.isEmpty())
+					{
+						camera.source.address = camera.source.address.substring(scheme.length() + 3);
+					}
+				}
+				catch (Exception ex)
+				{
+					App.error(getActivity(), R.string.error_bad_address);
+					return false;
+				}
+			}
 		}
 
 		// indicate success

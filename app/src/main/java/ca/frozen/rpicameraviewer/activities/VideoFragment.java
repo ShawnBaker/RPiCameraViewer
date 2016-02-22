@@ -393,7 +393,11 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 					}
 					if (format != null)
 					{
-						decoder.configure(format, surface, null, 0);
+						try
+						{
+							decoder.configure(format, surface, null, 0);
+						}
+						catch (Exception ex) {}
 						if (!newDecoding)
 						{
 							newDecoding = true;
@@ -605,34 +609,41 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 				ex.printStackTrace();
 			}
 
-			try
+			// close the reader
+			if (reader != null)
 			{
-				// close the reader
-				if (reader != null)
+				try
 				{
 					reader.close();
 				}
+				catch (Exception ex) {}
+				reader = null;
+			}
 
-				// stop the decoder
-				if (decoder != null)
+			// stop the decoder
+			if (decoder != null)
+			{
+				try
 				{
 					setDecodingState(false);
 					decoder.release();
-					decoder = null;
 				}
+				catch (Exception ex) {}
+				decoder = null;
+			}
 
-				// release the multicast lock
-				if (multicastLock != null)
+			// release the multicast lock
+			if (multicastLock != null)
+			{
+				try
 				{
 					if (multicastLock.isHeld())
 					{
 						multicastLock.release();
 					}
-					multicastLock = null;
 				}
-			}
-			catch (Exception ex)
-			{
+				catch (Exception ex) {}
+				multicastLock = null;
 			}
 		}
 

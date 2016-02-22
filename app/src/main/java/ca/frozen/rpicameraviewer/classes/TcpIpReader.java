@@ -62,19 +62,23 @@ public class TcpIpReader extends RawH264Reader
 	//******************************************************************************
 	public void close()
 	{
-		try
+		if (inputStream != null)
 		{
-			if (inputStream != null)
+			try
 			{
 				inputStream.close();
-				inputStream = null;
 			}
-			if (socket != null)
+			catch (Exception ex) {}
+			inputStream = null;
+		}
+		if (socket != null)
+		{
+			try
 			{
 				socket.close();
-				socket = null;
 			}
+			catch (Exception ex) {}
+			socket = null;
 		}
-		catch (IOException ex) {}
 	}
 }
