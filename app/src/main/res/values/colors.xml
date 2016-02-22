@@ -4,6 +4,7 @@
     <color name="accent">#E22424</color>
     <color name="activity_background">#FFF5EE</color>
     <color name="bad_text">#FF0000</color>
+    <color name="black">#000000</color>
     <color name="good_text">#00C000</color>
     <color name="primary">#931414</color>
     <color name="primary_dark">#801010</color>

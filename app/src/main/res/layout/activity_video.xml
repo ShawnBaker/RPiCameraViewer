@@ -2,28 +2,8 @@
 <!-- Copyright © 2016 Shawn Baker using the MIT License. -->
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/video"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
-    <TextureView
-        android:id="@+id/video_surface"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
-    <TextView
-        android:id="@+id/video_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|left"
-        android:layout_margin="10dp"
-        android:textSize="32sp" />
-
-    <TextView
-        android:id="@+id/video_message"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_margin="10dp"
-        android:textSize="24sp" />
 
 </FrameLayout>
