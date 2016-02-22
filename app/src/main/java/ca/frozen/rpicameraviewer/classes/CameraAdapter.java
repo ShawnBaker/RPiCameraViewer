@@ -1,7 +1,6 @@
 // Copyright © 2016 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.classes;
 
-import android.app.FragmentManager;
 import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,8 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ca.frozen.rpicameraviewer.R;
-import ca.frozen.rpicameraviewer.activities.ScannerFragment;
-import ca.frozen.rpicameraviewer.classes.Camera;
 
 public class CameraAdapter extends BaseAdapter
 {
