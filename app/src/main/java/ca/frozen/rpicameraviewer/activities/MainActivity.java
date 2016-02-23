@@ -3,13 +3,18 @@ package ca.frozen.rpicameraviewer.activities;
 
 import android.app.AlertDialog;
 import android.app.FragmentManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.MenuInflater;
 import android.view.View;
@@ -36,6 +41,9 @@ public class MainActivity extends AppCompatActivity
 	// instance variables
 	private CameraAdapter adapter;
 	private ScannerFragment scannerFragment;
+	private Menu mainMenu = null;
+	private ConnectivityChangeReceiver receiver = null;
+	private int value = 43;
 
 	//******************************************************************************
 	// onCreate
@@ -90,7 +98,7 @@ public class MainActivity extends AppCompatActivity
 		});
 
 		// do a scan if there are no cameras
-		if (savedInstanceState == null && adapter.getCameras().size() == 0)
+		if (savedInstanceState == null && adapter.getCameras().size() == 0 && Utils.connectedToNetwork())
 		{
 			Handler handler = new Handler();
 			handler.postDelayed(new Runnable()
@@ -101,6 +109,34 @@ public class MainActivity extends AppCompatActivity
 					startScanner();
 				}
 			}, 500);
+		}
+	}
+
+	//******************************************************************************
+	// onStart
+	//******************************************************************************
+	@Override
+	public void onStart()
+	{
+		super.onStart();
+		if (receiver == null)
+		{
+			receiver = new ConnectivityChangeReceiver();
+			registerReceiver(receiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+		}
+	}
+
+	//******************************************************************************
+	// onStop
+	//******************************************************************************
+	@Override
+	public void onStop()
+	{
+		super.onStop();
+		if (receiver != null)
+		{
+			unregisterReceiver(receiver);
+			receiver = null;
 		}
 	}
 
@@ -121,7 +157,7 @@ public class MainActivity extends AppCompatActivity
 	@Override
 	protected void onSaveInstanceState(Bundle state)
 	{
-		state.putInt("dummy", 1);
+		state.putInt("value", value);
 		super.onSaveInstanceState(state);
 	}
 
@@ -132,6 +168,7 @@ public class MainActivity extends AppCompatActivity
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
 		getMenuInflater().inflate(R.menu.menu_main, menu);
+		mainMenu = menu;
 		return true;
 	}
 
@@ -146,10 +183,36 @@ public class MainActivity extends AppCompatActivity
 		item.setEnabled(adapter.getCameras().size() != 0);
 
 		// set the network name
-		item = menu.findItem(R.id.action_network);
-		item.setTitle(Utils.getNetworkName());
+		setNetworkName();
 
 		return true;
+	}
+
+	//******************************************************************************
+	// setNetworkName
+	//******************************************************************************
+	private void setNetworkName()
+	{
+		if (mainMenu != null)
+		{
+			MenuItem item = mainMenu.findItem(R.id.action_network);
+			if (Utils.getSettings().showAllCameras)
+			{
+				item.setTitle(R.string.all_networks);
+			}
+			else
+			{
+				String name = Utils.getNetworkName();
+				if (name == null || name.isEmpty())
+				{
+					item.setTitle(R.string.no_network);
+				}
+				else
+				{
+					item.setTitle(name);
+				}
+			}
+		}
 	}
 
 	//******************************************************************************
@@ -367,5 +430,25 @@ public class MainActivity extends AppCompatActivity
 		Collections.sort(Utils.getCameras());
 		Utils.saveData();
 		adapter.refresh();
+	}
+
+	////////////////////////////////////////////////////////////////////////////////
+	// ConnectivityChangeReceiver
+	////////////////////////////////////////////////////////////////////////////////
+	private class ConnectivityChangeReceiver extends BroadcastReceiver
+	{
+		@Override
+		public void onReceive(Context c, Intent intent)
+		{
+			if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION))
+			{
+				setNetworkName();
+				if (adapter != null)
+				{
+					adapter.refresh();
+				}
+				value++;
+			}
+		}
 	}
 }
