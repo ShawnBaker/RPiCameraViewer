@@ -3,6 +3,7 @@
 <resources>
     <string name="about">About</string>
     <string name="address">Address</string>
+    <string name="all_networks">all networks</string>
     <string name="app_name">RPi Camera Viewer</string>
     <string name="bits_per_second">Bits per second</string>
     <string name="camera">Camera</string>
@@ -68,6 +69,7 @@
     <string name="networks">Networks</string>
     <string name="no">No</string>
     <string name="no_cameras">There are no cameras.</string>
+    <string name="no_network">no network</string>
     <string name="no_networks">There are no networks.\n\nTry running a scan\nfrom the main screen.</string>
     <string name="num_new_cameras_found" formatted="false">Number of new cameras found: %d</string>
     <string name="ok">OK</string>
