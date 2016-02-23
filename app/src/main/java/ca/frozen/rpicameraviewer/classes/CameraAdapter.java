@@ -25,6 +25,7 @@ public class CameraAdapter extends BaseAdapter
 	// instance variables
 	private List<Camera> cameras = new ArrayList<>();
 	private View.OnClickListener scanButtonOnClickListener = null;
+	private boolean showNetwork = false;
 
 	//******************************************************************************
 	// refresh
@@ -32,7 +33,6 @@ public class CameraAdapter extends BaseAdapter
 	public CameraAdapter(View.OnClickListener onClickListener)
 	{
 		super();
-
 		scanButtonOnClickListener = onClickListener;
 	}
 
@@ -41,7 +41,7 @@ public class CameraAdapter extends BaseAdapter
 	//******************************************************************************
 	public void refresh()
 	{
-		boolean showAllCameras = Utils.getSettings().showAllCameras;
+		boolean showAllCameras = !Utils.connectedToNetwork() || Utils.getSettings().showAllCameras;
 		if (showAllCameras)
 		{
 			cameras = Utils.getCameras();
@@ -59,6 +59,7 @@ public class CameraAdapter extends BaseAdapter
 				}
 			}
 		}
+		showNetwork = showAllCameras;
 		notifyDataSetChanged();
 	}
 
@@ -126,7 +127,12 @@ public class CameraAdapter extends BaseAdapter
 			// set the views
 			Source source = camera.getSource();
 			name.setText(camera.name);
-			address.setText(camera.network.name + ":" + source.address + ":" + source.port);
+			String fullAddress = Utils.getFullAddress(source.address, source.port);
+			if (camera.source.connectionType == Source.ConnectionType.RawHttp)
+			{
+				fullAddress = Utils.getHttpAddress(fullAddress);
+			}
+			address.setText((showNetwork ? (camera.network.name + ":") : "") + fullAddress);
 		}
 		else
 		{
