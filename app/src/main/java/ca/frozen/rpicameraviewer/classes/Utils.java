@@ -345,6 +345,38 @@ public class Utils
 	}
 
 	//******************************************************************************
+	// getFullAddress
+	//******************************************************************************
+	public static String getFullAddress(String baseAddress, int port)
+	{
+		String address = baseAddress;
+		int i = address.indexOf("://");
+		i = address.indexOf("/", (i != -1) ? i : 0);
+		if (i != -1)
+		{
+			address = address.substring(0, i) + ":" + port + address.substring(i);
+		}
+		else
+		{
+			address += ":" + port;
+		}
+		return address;
+	}
+
+	//******************************************************************************
+	// getHttpAddress
+	//******************************************************************************
+	public static String getHttpAddress(String baseAddress)
+	{
+		String address = baseAddress;
+		if (!address.startsWith("http://"))
+		{
+			address = "http://" + address;
+		}
+		return address;
+	}
+
+	//******************************************************************************
 	// getWifiName
 	//******************************************************************************
 	public static String getWifiName()
@@ -354,7 +386,8 @@ public class Utils
 		if (manager.isWifiEnabled())
 		{
 			WifiInfo wifiInfo = manager.getConnectionInfo();
-			if (wifiInfo != null) {
+			if (wifiInfo != null)
+			{
 				NetworkInfo.DetailedState state = WifiInfo.getDetailedStateOf(wifiInfo.getSupplicantState());
 				if (state == NetworkInfo.DetailedState.CONNECTED || state == NetworkInfo.DetailedState.OBTAINING_IPADDR)
 				{
@@ -368,6 +401,27 @@ public class Utils
 	}
 
 	//******************************************************************************
+	// connectedToWifi
+	//******************************************************************************
+	public static boolean connectedToWifi()
+	{
+		String name = getWifiName();
+		return name != null && !name.isEmpty();
+	}
+
+	//******************************************************************************
+	// connectedToNetwork
+	//******************************************************************************
+	public static boolean connectedToNetwork()
+	{
+		boolean connected = connectedToWifi();
+		if (!connected)
+		{
+		}
+		return connected;
+	}
+
+	//******************************************************************************
 	// getNetworkName
 	//******************************************************************************
 	public static String getNetworkName()
@@ -375,13 +429,12 @@ public class Utils
 		String name = getWifiName();
 		if (name == null || name.isEmpty())
 		{
-
 		}
 		return name;
 	}
 
 	//******************************************************************************
-	// getNetworkName
+	// getNextCameraName
 	//******************************************************************************
 	public static String getNextCameraName()
 	{
