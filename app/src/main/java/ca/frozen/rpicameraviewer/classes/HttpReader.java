@@ -145,17 +145,7 @@ public class HttpReader extends RawH264Reader
 		try
 		{
 			// get the URL
-			String address = baseAddress;
-			int i = address.indexOf("/");
-			if (i != -1)
-			{
-				address = address.substring(0, i) + ":" + port + address.substring(i);
-			}
-			else
-			{
-				address += ":" + port;
-			}
-			address = "http://" + address;
+			String address = Utils.getHttpAddress(Utils.getFullAddress(baseAddress, port));
 			URL url = new URL(address);
 
 			// get the connection
