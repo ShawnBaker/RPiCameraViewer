@@ -20,6 +20,9 @@ import android.widget.TextView;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import ca.frozen.rpicameraviewer.App;
@@ -170,13 +173,13 @@ public class ScannerFragment extends DialogFragment
 		private final static int NO_DEVICE = -1;
 		private final static int NUM_THREADS = 42;
 		private final static int SLEEP_TIMEOUT = 10;
-		private final static int SOCKET_TIMEOUT = 500;
 		private final static int DISMISS_TIMEOUT = 2000;
 
 		// instance variables
 		private WeakReference<ScannerFragment> fragmentWeakRef;
 		private String ipAddress, network;
-		private int port, device, numDone, numNewCameras;
+		private int port, device, numDone;
+		private List<Camera> cameras, newCameras;
 
 		//******************************************************************************
 		// DeviceScanner
@@ -197,8 +200,9 @@ public class ScannerFragment extends DialogFragment
 			ipAddress = Utils.getLocalIpAddress();
 			port = Utils.getDefaultPort();
 			device = 0;
-			numNewCameras = 0;
 			numDone = 0;
+			cameras = Utils.getNetworkCameras(Utils.getNetwork(network));
+			newCameras = new ArrayList<Camera>();
 		}
 
 		//******************************************************************************
@@ -265,20 +269,23 @@ public class ScannerFragment extends DialogFragment
 				};
 
 				// create and start the threads
-				Log.d(TAG, "creating threads");
 				for (int t = 0; t < NUM_THREADS; t++)
 				{
 					Thread thread = new Thread(runner);
 					thread.start();
 				}
-				Log.d(TAG, "threads created");
 
 				// wait for the threads to finish
 				while (!isCancelled() && numDone < 254)
 				{
 					SystemClock.sleep(SLEEP_TIMEOUT);
 				}
-				Log.d(TAG, String.format("threads complete: %d %d", numDone, isCancelled() ? 1 : 0));
+
+				// add the new cameras
+				if (!isCancelled() && newCameras.size() > 0)
+				{
+					addCameras();
+				}
 				setStatus(true);
 			}
 			return null;
@@ -298,7 +305,7 @@ public class ScannerFragment extends DialogFragment
 					public void run()
 					{
 						cancelButton.setText(App.getStr(R.string.done));
-						if (numNewCameras > 0)
+						if (newCameras.size() > 0)
 						{
 							activity.updateCameras();
 							dismissHandler.postDelayed(dismissRunner, DISMISS_TIMEOUT);
@@ -309,19 +316,76 @@ public class ScannerFragment extends DialogFragment
 		}
 
 		//******************************************************************************
+		// addCameras
+		//******************************************************************************
+		private void addCameras()
+		{
+			// sort the new cameras by IP address
+			Collections.sort(newCameras, new Comparator<Camera>()
+			{
+				@Override
+				public int compare(Camera camera1, Camera camera2)
+				{
+					int octet1 = getLastOctet(camera1.source.address);
+					int octet2 = getLastOctet(camera2.source.address);
+					return octet1 - octet2;
+				}
+			});
+
+			// get the maximum number from the existing camera names
+			int max = Utils.getMaxCameraNumber(cameras);
+
+			// set the camera names and add the new cameras to the list of all cameras
+			String defaultName = Utils.getDefaultCameraName() + " ";
+			List<Camera> allCameras = Utils.getCameras();
+			for (Camera camera : newCameras)
+			{
+				camera.name = defaultName + ++max;
+				allCameras.add(camera);
+			}
+		}
+
+		//******************************************************************************
+		// getLastOctet
+		//******************************************************************************
+		private int getLastOctet(String address)
+		{
+			String ip = address;
+			int i = ip.indexOf("://");
+			if (i != -1)
+			{
+				ip = ip.substring(i + 3);
+			}
+			i = ip.indexOf("?");
+			if (i != -1)
+			{
+				ip = ip.substring(0, i);
+			}
+			i = ip.indexOf("/");
+			if (i != -1)
+			{
+				ip = ip.substring(0, i);
+			}
+			String[] octets = ip.split("\\.");
+			int octet = -1;
+			try
+			{
+				octet = Integer.parseInt(octets[3]);
+			}
+			catch (Exception ex) {}
+			return octet;
+		}
+
+		//******************************************************************************
 		// addCamera
 		//******************************************************************************
 		private synchronized void addCamera(Camera newCamera)
 		{
-			Source newSource = newCamera.source;
 			boolean found = false;
-			List<Camera> cameras = Utils.getCameras();
 			for (Camera camera : cameras)
 			{
-				Source cameraSource = camera.source;
-				if (newCamera.network.equals(camera.network) &&
-					newSource.address.equals(cameraSource.address) &&
-					newSource.port == cameraSource.port)
+				if (newCamera.source.address.equals(camera.source.address) &&
+					newCamera.source.port == camera.source.port)
 				{
 					found = true;
 					break;
@@ -329,12 +393,7 @@ public class ScannerFragment extends DialogFragment
 			}
 			if (!found)
 			{
-				if (newCamera.name.isEmpty())
-				{
-					newCamera.name = Utils.getNextCameraName();
-				}
-				cameras.add(newCamera);
-				numNewCameras++;
+				newCameras.add(newCamera);
 			}
 		}
 
@@ -374,8 +433,8 @@ public class ScannerFragment extends DialogFragment
 					{
 						message.setText(String.format(App.getStr(R.string.scanning_on_port), port));
 						progress.setProgress(numDone);
-						status.setText(String.format(App.getStr(R.string.num_new_cameras_found), numNewCameras));
-						if (numNewCameras > 0)
+						status.setText(String.format(App.getStr(R.string.num_new_cameras_found), newCameras.size()));
+						if (newCameras.size() > 0)
 						{
 							status.setTextColor(ContextCompat.getColor(App.getContext(), R.color.good_text));
 						}

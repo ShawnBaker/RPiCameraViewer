@@ -267,6 +267,37 @@ public class Utils
 	}
 
 	//******************************************************************************
+	// getNetworkCameras
+	//******************************************************************************
+	public static List<Camera> getNetworkCameras(Network network)
+	{
+		loadData();
+
+		// find the cameras for the network
+		List<Camera> networkCameras = new ArrayList<Camera>();
+		for (Camera camera : cameras)
+		{
+			if (camera.network == network)
+			{
+				networkCameras.add(camera);
+			}
+		}
+
+		return networkCameras;
+	}
+
+	//******************************************************************************
+	// getNetworkCameras
+	//******************************************************************************
+	public static List<Camera> getNetworkCameras(String networkName)
+	{
+		loadData();
+
+		Network network = findNetwork(networkName);
+		return (network != null) ? getNetworkCameras(network) : null;
+	}
+
+	//******************************************************************************
 	// getCameras
 	//******************************************************************************
 	public static List<Camera> getCameras()
@@ -351,7 +382,7 @@ public class Utils
 	{
 		String address = baseAddress;
 		int i = address.indexOf("://");
-		i = address.indexOf("/", (i != -1) ? i : 0);
+		i = address.indexOf("/", (i != -1) ? (i + 3) : 0);
 		if (i != -1)
 		{
 			address = address.substring(0, i) + ":" + port + address.substring(i);
@@ -434,36 +465,38 @@ public class Utils
 	}
 
 	//******************************************************************************
-	// getNextCameraName
+	// getMaxCameraNumber
 	//******************************************************************************
-	public static String getNextCameraName()
+	public static int getMaxCameraNumber(List<Camera> cameras)
 	{
-		loadData();
-
-		String name = getDefaultCameraName();
-		int number = 0;
-		for (Camera camera : cameras)
+		// get the maximum number from the existing camera names
+		int max = 0;
+		String defaultName = Utils.getDefaultCameraName() + " ";
+		for (int i = 0; i < cameras.size(); i++)
 		{
-			String cameraName = camera.name;
-			if (cameraName.startsWith(name + " "))
+			Camera camera = cameras.get(i);
+			if (camera.name.startsWith(defaultName))
 			{
-				String suffix = cameraName.substring(name.length() + 1);
-				int n = 0;
+				int num = -1;
 				try
 				{
-					n = Integer.parseInt(suffix);
+					num = Integer.parseInt(camera.name.substring(defaultName.length()));
 				}
-				catch (NumberFormatException ex)
+				catch (Exception ex) {}
+				if (num != -1)
 				{
-					n = number;
-				}
-				if (n > number)
-				{
-					number = n;
+					if (num > max) max = num;
 				}
 			}
 		}
-		name += " " + (number + 1);
-		return name;
+		return max;
+	}
+
+	//******************************************************************************
+	// getNextCameraName
+	//******************************************************************************
+	public static String getNextCameraName(List<Camera> cameras)
+	{
+		return getDefaultCameraName() + " " + (getMaxCameraNumber(cameras) + 1);
 	}
 }

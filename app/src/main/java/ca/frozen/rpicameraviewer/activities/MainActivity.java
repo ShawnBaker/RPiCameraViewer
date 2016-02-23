@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity
 			public void onClick(View view)
 			{
 				Camera camera = new Camera();
-				camera.name = Utils.getNextCameraName();
+				camera.name = Utils.getNextCameraName(adapter.getCameras());
 				startCameraActivity(camera);
 			}
 		});

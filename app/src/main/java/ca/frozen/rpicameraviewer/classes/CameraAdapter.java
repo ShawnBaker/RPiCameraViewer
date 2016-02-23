@@ -48,16 +48,9 @@ public class CameraAdapter extends BaseAdapter
 		}
 		else
 		{
-			String network = Utils.getNetworkName();
-			List<Camera> allCameras = Utils.getCameras();
-			cameras = new ArrayList<Camera>();
-			for (Camera camera : Utils.getCameras())
-			{
-				if (camera.network.name.equals(network))
-				{
-					cameras.add(camera);
-				}
-			}
+			Network network = Utils.getNetwork(Utils.getNetworkName());
+			showAllCameras = network == null;
+			cameras = showAllCameras ? Utils.getCameras() : Utils.getNetworkCameras(network);
 		}
 		showNetwork = showAllCameras;
 		notifyDataSetChanged();
