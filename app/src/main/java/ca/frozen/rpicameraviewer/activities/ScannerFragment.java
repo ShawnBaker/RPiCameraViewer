@@ -17,6 +17,7 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.Socket;
@@ -36,7 +37,7 @@ import ca.frozen.rpicameraviewer.R;
 public class ScannerFragment extends DialogFragment
 {
 	// local constants
-	private final static String TAG = "DeviceScanner";
+	private final static String TAG = "ScannerFragment";
 
 	// instance variables
 	private WeakReference<DeviceScanner> scannerWeakRef;
@@ -251,14 +252,21 @@ public class ScannerFragment extends DialogFragment
 							{
 								try
 								{
-									address += "/stream/video.h264";
 									HttpURLConnection http = HttpReader.getConnection(address, 8080, true);
 									if (http != null)
 									{
-										Camera camera = new Camera(network, "", address, 8080, Source.ConnectionType.RawHttp);
-										addCamera(camera);
-										http.disconnect();
-										found = true;
+										InputStream stream = http.getInputStream();
+										byte[] buffer = new byte[1024];
+										int len = stream.read(buffer);
+										String page = new String(buffer, 0, len);
+										if (page.contains("UV4L Streaming Server"))
+										{
+											address += "/stream/video.h264";
+											Camera camera = new Camera(network, "", address, 8080, Source.ConnectionType.RawHttp);
+											addCamera(camera);
+											http.disconnect();
+											found = true;
+										}
 									}
 								}
 								catch (Exception ex) {}
