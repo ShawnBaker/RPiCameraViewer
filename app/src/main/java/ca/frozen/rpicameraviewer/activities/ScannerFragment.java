@@ -29,6 +29,7 @@ import java.util.List;
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.classes.Camera;
 import ca.frozen.rpicameraviewer.classes.HttpReader;
+import ca.frozen.rpicameraviewer.classes.Network;
 import ca.frozen.rpicameraviewer.classes.Source;
 import ca.frozen.rpicameraviewer.classes.TcpIpReader;
 import ca.frozen.rpicameraviewer.classes.Utils;
@@ -198,11 +199,12 @@ public class ScannerFragment extends DialogFragment
 		{
 			// get our IP address and the default port
 			network = Utils.getNetworkName();
+			Network net = Utils.getNetwork(network);
 			ipAddress = Utils.getLocalIpAddress();
-			port = Utils.getDefaultPort();
+			port = net.getSource().port;
 			device = 0;
 			numDone = 0;
-			cameras = Utils.getNetworkCameras(Utils.getNetwork(network));
+			cameras = Utils.getNetworkCameras(net);
 			newCameras = new ArrayList<Camera>();
 		}
 
