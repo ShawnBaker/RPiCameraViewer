@@ -223,12 +223,27 @@ public class MainActivity extends AppCompatActivity
 	{
         int id = item.getItemId();
 
-		// scan for cameras
-        if (id == R.id.action_scan)
+		// edit the current network
+        if (id == R.id.action_network)
         {
-			startScanner();
+			Network network = Utils.findNetwork(Utils.getNetworkName());
+			if (network != null)
+			{
+				startNetworkActivity(network);
+			}
+			else
+			{
+				App.error(this, R.string.error_no_network);
+			}
             return true;
         }
+
+		// scan for cameras
+		else if (id == R.id.action_scan)
+		{
+			startScanner();
+			return true;
+		}
 
 		// delete all the cameras
 		else if (id == R.id.action_delete_all)
