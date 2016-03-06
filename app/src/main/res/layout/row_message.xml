@@ -25,7 +25,7 @@
         android:layout_centerHorizontal="true"
         android:textSize="20sp"
         android:background="@color/primary"
-        android:textColor="@color/white"
+        android:textColor="@android:color/white"
         android:text="@string/scan" />
 
 </RelativeLayout>
