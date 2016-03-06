@@ -16,8 +16,6 @@ public class Settings
 
 	// instance variables
 	public String cameraName;
-	public NamePosition cameraNamePosition;
-	public int cameraNameColor;
 	public boolean showAllCameras;
 	public Source source;
 
@@ -48,8 +46,6 @@ public class Settings
 		try
 		{
 			cameraName = obj.getString("cameraName");
-			cameraNamePosition = intToPos(obj.getInt("cameraNamePosition"));
-			cameraNameColor = obj.getInt("cameraNameColor");
 			showAllCameras = obj.getBoolean("showAllCameras");
 			source = new Source(obj.getJSONObject("source"));
 		}
@@ -66,8 +62,6 @@ public class Settings
 	private void initialize()
 	{
 		cameraName = App.getStr(R.string.camera);
-		cameraNamePosition = NamePosition.BottomLeft;
-		cameraNameColor = App.getClr(R.color.accent);
 		showAllCameras = false;
 		source = new Source();
 		source.connectionType = Source.ConnectionType.RawTcpIp;
@@ -82,8 +76,7 @@ public class Settings
 	@Override
 	public String toString()
 	{
-		return cameraName + "," + cameraNamePosition + "," + cameraNameColor + "," +
-				showAllCameras + "," + source.toString();
+		return cameraName + "," + showAllCameras + "," + source.toString();
 	}
 
 	//******************************************************************************
@@ -95,8 +88,6 @@ public class Settings
 		{
 			JSONObject obj = new JSONObject();
 			obj.put("cameraName", cameraName);
-			obj.put("cameraNamePosition", posToInt(cameraNamePosition));
-			obj.put("cameraNameColor", cameraNameColor);
 			obj.put("showAllCameras", showAllCameras);
 			obj.put("source", source.toJson());
 			return obj;
@@ -106,41 +97,5 @@ public class Settings
 			ex.printStackTrace();
 		}
 		return null;
-	}
-
-	//******************************************************************************
-	// intToPos
-	//******************************************************************************
-	private NamePosition intToPos(int n)
-	{
-		if (n == 4) return NamePosition.BottomRight;
-		if (n == 3) return NamePosition.BottomLeft;
-		if (n == 2) return NamePosition.TopRight;
-		if (n == 1) return NamePosition.TopLeft;
-		return NamePosition.Hidden;
-	}
-
-	//******************************************************************************
-	// posToInt
-	//******************************************************************************
-	private int posToInt(NamePosition p)
-	{
-		if (p == NamePosition.BottomRight) return 4;
-		if (p == NamePosition.BottomLeft) return 3;
-		if (p == NamePosition.TopRight) return 2;
-		if (p == NamePosition.TopLeft) return 1;
-		return 0;
-	}
-
-	//******************************************************************************
-	// NamePosition
-	//******************************************************************************
-	public enum NamePosition
-	{
-		Hidden,
-		TopLeft,
-		TopRight,
-		BottomLeft,
-		BottomRight
 	}
 }

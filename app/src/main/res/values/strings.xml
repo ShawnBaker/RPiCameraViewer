@@ -22,7 +22,6 @@
     <string name="edit_network">Edit Network</string>
     <string name="error_bad_address">The address is not a valid URL.</string>
     <string name="error_bad_bps">The bits per second must be a positive number or empty.</string>
-    <string name="error_bad_color">The color must be formatted as: AARRGGBB, RRGGBB, ARGB, RGB.</string>
     <string name="error_bad_fps">The frames per second must be a positive number or empty.</string>
     <string name="error_bad_height">The height must be a positive number or empty.</string>
     <string name="error_bad_port" formatted="false">The port number must be between %d and %d.</string>
@@ -36,7 +35,6 @@
     <string name="error_no_network">There is no local network.</string>
     <string name="error_no_address">You must enter an address.</string>
     <string name="error_no_port">You must enter a port number.</string>
-    <string name="error_color_not_visible">The color must be visible.</string>
     <string name="frames_per_second">Frames per second</string>
     <string name="general">General</string>
     <string name="height">Height</string>
