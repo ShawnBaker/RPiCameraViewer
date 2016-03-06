@@ -1,7 +1,12 @@
 // Copyright © 2016 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
+import android.media.MediaActionSound;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.net.wifi.WifiManager;
@@ -10,7 +15,6 @@ import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.GestureDetector;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -18,11 +22,15 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.widget.Button;
 import android.widget.TextView;
 
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.R;
@@ -30,7 +38,6 @@ import ca.frozen.rpicameraviewer.classes.Camera;
 import ca.frozen.rpicameraviewer.classes.HttpReader;
 import ca.frozen.rpicameraviewer.classes.MulticastReader;
 import ca.frozen.rpicameraviewer.classes.RawH264Reader;
-import ca.frozen.rpicameraviewer.classes.Settings;
 import ca.frozen.rpicameraviewer.classes.Source;
 import ca.frozen.rpicameraviewer.classes.SpsParser;
 import ca.frozen.rpicameraviewer.classes.TcpIpReader;
@@ -38,36 +45,51 @@ import ca.frozen.rpicameraviewer.classes.Utils;
 
 public class VideoFragment extends Fragment implements TextureView.SurfaceTextureListener
 {
+	// public interfaces
+	public interface OnFadeListener
+	{
+		void onStartFadeIn();
+		void onStartFadeOut();
+	}
+
 	// public constants
 	public final static String CAMERA = "camera";
+	public final static String FULL_SCREEN = "full_screen";
 
 	// local constants
 	private final static String TAG = "VideoFragment";
 	private final static float MIN_ZOOM = 0.1f;
 	private final static float MAX_ZOOM = 10;
+	private final static int FADEOUT_TIMEOUT = 5000;
+	private final static int FADEOUT_ANIMATION_TIME = 500;
+	private final static int FADEIN_ANIMATION_TIME = 400;
 
 	// instance variables
 	private Camera camera;
+	private boolean fullScreen;
 	private DecoderThread decoder;
 	private TextureView textureView;
 	private TextView nameView, messageView;
+	private Button snapshotButton;
 	private ScaleGestureDetector scaleDetector;
 	private GestureDetector simpleDetector;
 	private float scale = 1;
 	private float panX = 0;
 	private float panY = 0;
-	private Runnable finishRunner;
-	private Handler finishHandler;
+	private Runnable fadeInRunner, fadeOutRunner, finishRunner;
+	private Handler fadeInHandler, fadeOutHandler, finishHandler;
+	private OnFadeListener fadeListener;
 
 	//******************************************************************************
 	// newInstance
 	//******************************************************************************
-	public static VideoFragment newInstance(Camera camera)
+	public static VideoFragment newInstance(Camera camera, boolean fullScreen)
 	{
 		VideoFragment fragment = new VideoFragment();
 
 		Bundle args = new Bundle();
 		args.putParcelable(CAMERA, camera);
+		args.putBoolean(FULL_SCREEN, fullScreen);
 		fragment.setArguments(args);
 
 		return fragment;
@@ -85,12 +107,51 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		// load the settings, networks and cameras
 		Utils.loadData();
 
-		// get the camera object
+		// get the parameters
 		camera = getArguments().getParcelable(CAMERA);
+		fullScreen = getArguments().getBoolean(FULL_SCREEN);
 
 		// create the gesture recognizers
 		simpleDetector = new GestureDetector(getActivity(), new SimpleListener());
 		scaleDetector = new ScaleGestureDetector(getActivity(), new ScaleListener());
+
+		// create the fade in handler and runnable
+		fadeInHandler = new Handler();
+		fadeInRunner = new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				Animation fadeInName = new AlphaAnimation(0, 1);
+				fadeInName.setDuration(FADEIN_ANIMATION_TIME);
+				fadeInName.setFillAfter(true);
+				Animation fadeInSnapshot = new AlphaAnimation(0, 1);
+				fadeInSnapshot.setDuration(FADEIN_ANIMATION_TIME);
+				fadeInSnapshot.setFillAfter(true);
+				nameView.startAnimation(fadeInName);
+				snapshotButton.startAnimation(fadeInSnapshot);
+				fadeListener.onStartFadeIn();
+			}
+		};
+
+		// create the fade out handler and runnable
+		fadeOutHandler = new Handler();
+		fadeOutRunner = new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				Animation fadeOutName = new AlphaAnimation(1, 0);
+				fadeOutName.setDuration(FADEOUT_ANIMATION_TIME);
+				fadeOutName.setFillAfter(true);
+				Animation fadeOutSnapshot = new AlphaAnimation(1, 0);
+				fadeOutSnapshot.setDuration(FADEOUT_ANIMATION_TIME);
+				fadeOutSnapshot.setFillAfter(true);
+				nameView.startAnimation(fadeOutName);
+				snapshotButton.startAnimation(fadeOutSnapshot);
+				fadeListener.onStartFadeOut();
+			}
+		};
 
 		// create the finish handler and runnable
 		finishHandler = new Handler();
@@ -123,30 +184,8 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		});
 
 		// configure the name
-		Settings settings = Utils.getSettings();
 		nameView = (TextView) view.findViewById(R.id.video_name);
 		nameView.setText(camera.name);
-		FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-		switch (settings.cameraNamePosition)
-		{
-			case TopLeft:
-				params.gravity =  Gravity.TOP | Gravity.LEFT;
-				break;
-			case TopRight:
-				params.gravity =  Gravity.TOP | Gravity.RIGHT;
-				break;
-			case BottomLeft:
-				params.gravity =  Gravity.BOTTOM | Gravity.LEFT;
-				break;
-			case BottomRight:
-				params.gravity =  Gravity.BOTTOM | Gravity.RIGHT;
-				break;
-			default:
-				nameView.setVisibility(View.GONE);
-				break;
-		}
-		nameView.setLayoutParams(params);
-		nameView.setTextColor(settings.cameraNameColor);
 
 		// initialize the message
 		messageView = (TextView) view.findViewById(R.id.video_message);
@@ -157,7 +196,51 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		textureView = (TextureView) view.findViewById(R.id.video_surface);
 		textureView.setSurfaceTextureListener(this);
 
+		// create the snapshot button
+		snapshotButton = (Button) view.findViewById(R.id.video_snapshot);
+		snapshotButton.setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View view)
+			{
+				Bitmap image = textureView.getBitmap();
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss");
+				String name = camera.network.name + "_" + camera.name.replaceAll("\\s+", "") + "_" + sdf.format(new Date()) + ".jpg";
+				String url = Utils.saveImage(getActivity().getContentResolver(), image, name, null);
+				MediaActionSound sound = new MediaActionSound();
+				sound.play(MediaActionSound.SHUTTER_CLICK);
+			}
+		});
+
+		// move the snapshot button over to account for the navigation bar
+		if (fullScreen)
+		{
+			float scale = getContext().getResources().getDisplayMetrics().density;
+			int margin = (int)(5 * scale + 0.5f);
+			int extra = Utils.getNavigationBarHeight(getContext(), Configuration.ORIENTATION_LANDSCAPE);
+			ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) snapshotButton.getLayoutParams();
+			lp.setMargins(margin, margin, margin + extra, margin);
+		}
+
 		return view;
+	}
+
+	//******************************************************************************
+	// onAttach
+	//******************************************************************************
+	@Override
+	public void onAttach(Context context)
+	{
+		super.onAttach(context);
+		try
+		{
+			Activity activity = (Activity) context;
+			fadeListener = (OnFadeListener) activity;
+		}
+		catch (ClassCastException e)
+		{
+			throw new ClassCastException(context.toString() + " must implement OnFadeListener");
+		}
 	}
 
 	//******************************************************************************
@@ -195,6 +278,29 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		{
 			decoder.interrupt();
 			decoder = null;
+		}
+	}
+
+	//******************************************************************************
+	// onPause
+	//******************************************************************************
+	@Override
+	public void onPause()
+	{
+		super.onPause();
+		stopFadeOutTimer();
+	}
+
+	//******************************************************************************
+	// onResume
+	//******************************************************************************
+	@Override
+	public void onResume()
+	{
+		super.onResume();
+		if (snapshotButton.getVisibility() == View.VISIBLE)
+		{
+			startFadeOutTimer(false);
 		}
 	}
 
@@ -240,6 +346,34 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	}
 
 	//******************************************************************************
+	// startFadeIn
+	//******************************************************************************
+	public void startFadeIn()
+	{
+		stopFadeOutTimer();
+		fadeInHandler.removeCallbacks(fadeInRunner);
+		fadeInHandler.post(fadeInRunner);
+		startFadeOutTimer(true);
+	}
+
+	//******************************************************************************
+	// startFadeOutTimer
+	//******************************************************************************
+	private void startFadeOutTimer(boolean addFadeInTime)
+	{
+		fadeOutHandler.removeCallbacks(fadeOutRunner);
+		fadeOutHandler.postDelayed(fadeOutRunner, FADEOUT_TIMEOUT + (addFadeInTime ? FADEIN_ANIMATION_TIME : 0));
+	}
+
+	//******************************************************************************
+	// stopFadeOutTimer
+	//******************************************************************************
+	private void stopFadeOutTimer()
+	{
+		fadeOutHandler.removeCallbacks(fadeOutRunner);
+	}
+
+	//******************************************************************************
 	// adjustPan
 	//******************************************************************************
 	private boolean adjustPan(float scale)
@@ -278,8 +412,16 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	private class SimpleListener extends GestureDetector.SimpleOnGestureListener
 	{
 		@Override
+		public boolean onDown(MotionEvent e)
+		{
+			startFadeOutTimer(false);
+			return false;
+		}
+
+		@Override
 		public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY)
 		{
+			startFadeOutTimer(false);
 			if (scale > 1)
 			{
 				panX -= distanceX;
@@ -295,6 +437,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		@Override
 		public boolean onDoubleTap(MotionEvent e)
 		{
+			startFadeOutTimer(false);
 			scale = 1;
 			textureView.setScaleX(scale);
 			textureView.setScaleY(scale);
@@ -339,6 +482,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		@Override
 		public boolean onScaleBegin(ScaleGestureDetector detector)
 		{
+			stopFadeOutTimer();
 			startScale = scale;
 			return true;
 		}
@@ -348,6 +492,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		{
 			float newScale = startScale * detector.getScaleFactor();
 			scale = Math.max(0.1f, Math.min(newScale, 10));
+			startFadeOutTimer(false);
 		}
 	}
 
