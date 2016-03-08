@@ -3,6 +3,7 @@
 call :export snapshot_button
 REM call :export video_button
 call :export white_plus
+call :export white_x
 goto :eof
 
 :export

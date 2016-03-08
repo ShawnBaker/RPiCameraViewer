@@ -26,7 +26,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.8"
-     inkscape:cx="76.609133"
+     inkscape:cx="23.216276"
      inkscape:cy="987.58199"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -67,11 +67,11 @@
     <circle
        style="opacity:1;fill:#c31e1e;fill-opacity:1;stroke:none;stroke-width:5;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="red_circle"
-       cx="133.38962"
-       cy="57.524055"
+       cx="105.38962"
+       cy="67.524055"
        r="18" />
     <g
-       transform="translate(-171.76984,-357.49518)"
+       transform="translate(-172.34127,-384.99518)"
        id="white_plus">
       <rect
          y="407.36221"
@@ -90,7 +90,8 @@
          y="-220" />
     </g>
     <g
-       id="white_camera">
+       id="white_camera"
+       transform="translate(-28,10)">
       <rect
          ry="1.0153042"
          rx="1.1148168"
@@ -118,7 +119,7 @@
     </g>
     <g
        id="snapshot_button"
-       transform="translate(-8.8388347,0)">
+       transform="translate(-36.838835,10)">
       <circle
          style="opacity:1;fill:#c31e1e;fill-opacity:1;stroke:none;stroke-width:5;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="circle4143"
@@ -156,7 +157,7 @@
     </g>
     <g
        id="white_video"
-       transform="translate(30.400818,-14.836616)">
+       transform="translate(2.400818,-4.836616)">
       <rect
          style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="rect4162"
@@ -186,7 +187,8 @@
          sodipodi:type="star" />
     </g>
     <g
-       id="video_button">
+       id="video_button"
+       transform="translate(-28,10)">
       <circle
          style="opacity:1;fill:#c31e1e;fill-opacity:1;stroke:none;stroke-width:5;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="circle4190"
@@ -224,6 +226,26 @@
            style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-width:3.26773453;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
            sodipodi:type="star" />
       </g>
+    </g>
+    <g
+       transform="translate(-359.57108,-536.21394)"
+       id="white_x">
+      <rect
+         transform="matrix(0.70710678,-0.70710678,0.70710678,0.70710678,0,0)"
+         style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="rect4808"
+         width="2"
+         height="18.000023"
+         x="-99.543961"
+         y="693.51367" />
+      <rect
+         y="89.543945"
+         x="-703.51367"
+         height="18.000023"
+         width="2"
+         id="rect4811"
+         style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:3;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         transform="matrix(-0.70710678,-0.70710678,-0.70710678,0.70710678,0,0)" />
     </g>
   </g>
 </svg>
