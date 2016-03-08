@@ -33,6 +33,7 @@
         <activity
             android:name=".activities.CameraActivity"
             android:label="@string/camera"
+            android:theme="@style/AppBackAsCancelTheme"
             android:parentActivityName=".activities.MainActivity" >
         </activity>
         <activity
@@ -41,18 +42,17 @@
             android:parentActivityName=".activities.MainActivity" >
         </activity>
         <activity
-            android:name=".activities.NetworkActivity"
-            android:label="@string/network" >
-        </activity>
-        <activity
-            android:name=".activities.NetworksActivity"
-            android:label="@string/networks"
-            android:parentActivityName=".activities.MainActivity" >
-        </activity>
-        <activity
             android:name=".activities.SettingsActivity"
             android:label="@string/settings"
+            android:launchMode="singleTop"
+            android:theme="@style/AppBackAsCancelTheme"
             android:parentActivityName=".activities.MainActivity" >
+        </activity>
+        <activity
+            android:name=".activities.SourceActivity"
+            android:label="@string/source"
+            android:theme="@style/AppBackAsCancelTheme"
+            android:parentActivityName=".activities.SettingsActivity" >
         </activity>
         <activity
             android:name=".activities.VideoActivity"

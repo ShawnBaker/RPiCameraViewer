@@ -6,6 +6,7 @@
               android:orientation="vertical" >
 
     <LinearLayout
+        android:id="@+id/source_connection_type_row"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -21,11 +22,13 @@
         <Spinner
             android:id="@+id/source_connection_type"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:entries="@array/connection_types" />
 
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/source_address_row"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal" >

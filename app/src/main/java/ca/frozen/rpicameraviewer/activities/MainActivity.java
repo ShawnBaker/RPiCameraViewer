@@ -29,7 +29,6 @@ import java.util.List;
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.classes.Camera;
 import ca.frozen.rpicameraviewer.classes.CameraAdapter;
-import ca.frozen.rpicameraviewer.classes.Network;
 import ca.frozen.rpicameraviewer.classes.Utils;
 import ca.frozen.rpicameraviewer.R;
 
@@ -59,7 +58,7 @@ public class MainActivity extends AppCompatActivity
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
 
-		// load the settings, networks and cameras
+		// load the settings and cameras
 		Utils.loadData();
 
 		// set the list adapter
@@ -223,18 +222,10 @@ public class MainActivity extends AppCompatActivity
 	{
         int id = item.getItemId();
 
-		// edit the current network
+		// network name
         if (id == R.id.action_network)
         {
-			Network network = Utils.findNetwork(Utils.getNetworkName());
-			if (network != null)
-			{
-				startNetworkActivity(network);
-			}
-			else
-			{
-				App.error(this, R.string.error_no_network);
-			}
+			// nothing to do right now
             return true;
         }
 
@@ -258,20 +249,13 @@ public class MainActivity extends AppCompatActivity
 					if (Utils.getSettings().showAllCameras)
 					{
 						Utils.getCameras().clear();
-						Utils.getNetworks().clear();
 					}
 					else
 					{
-						Network network = null;
 						List<Camera> allCameras = Utils.getCameras();
 						for (Camera camera : adapter.getCameras())
 						{
 							allCameras.remove(camera);
-							network = camera.network;
-						}
-						if (network != null)
-						{
-							Utils.getNetworks().remove(network);
 						}
 					}
 					updateCameras();
@@ -288,14 +272,6 @@ public class MainActivity extends AppCompatActivity
 			});
 
 			alert.show();
-		}
-
-		// display the list of networks
-		else if (id == R.id.action_networks)
-		{
-			Intent intent = new Intent(this, NetworksActivity.class);
-			startActivity(intent);
-			return true;
 		}
 
 		// edit the settings
@@ -356,13 +332,6 @@ public class MainActivity extends AppCompatActivity
 				startCameraActivity(camera);
 				return true;
 
-			// edit the selected camera's network
-			case R.id.action_edit_network:
-				info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
-				camera = adapter.getCameras().get(info.position);
-				startNetworkActivity(camera.network);
-				return true;
-
 			// prompt the user to delete the selected camera
 			case R.id.action_delete:
 				info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
@@ -414,16 +383,6 @@ public class MainActivity extends AppCompatActivity
 	{
 		Intent intent = new Intent(App.getContext(), CameraActivity.class);
 		intent.putExtra(CameraActivity.CAMERA, camera);
-		startActivity(intent);
-	}
-
-	//******************************************************************************
-	// startNetworkActivity
-	//******************************************************************************
-	private void startNetworkActivity(Network network)
-	{
-		Intent intent = new Intent(App.getContext(), NetworkActivity.class);
-		intent.putExtra(NetworkActivity.NETWORK, network);
 		startActivity(intent);
 	}
 

@@ -104,7 +104,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		// configure the activity
 		super.onCreate(savedInstanceState);
 
-		// load the settings, networks and cameras
+		// load the settings and cameras
 		Utils.loadData();
 
 		// get the parameters
@@ -205,7 +205,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 			{
 				Bitmap image = textureView.getBitmap();
 				SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss");
-				String name = camera.network.name + "_" + camera.name.replaceAll("\\s+", "") + "_" + sdf.format(new Date()) + ".jpg";
+				String name = camera.network + "_" + camera.name.replaceAll("\\s+", "") + "_" + sdf.format(new Date()) + ".jpg";
 				String url = Utils.saveImage(getActivity().getContentResolver(), image, name, null);
 				MediaActionSound sound = new MediaActionSound();
 				sound.play(MediaActionSound.SHUTTER_CLICK);

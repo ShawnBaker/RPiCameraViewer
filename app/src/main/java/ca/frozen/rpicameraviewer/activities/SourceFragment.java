@@ -9,8 +9,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,7 +20,7 @@ import java.util.List;
 
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.classes.Camera;
-import ca.frozen.rpicameraviewer.classes.Network;
+import ca.frozen.rpicameraviewer.classes.Settings;
 import ca.frozen.rpicameraviewer.classes.Source;
 import ca.frozen.rpicameraviewer.classes.Utils;
 import ca.frozen.rpicameraviewer.R;
@@ -33,6 +33,7 @@ public class SourceFragment extends Fragment
 
 	// instance variables
 	private Source source;
+	private boolean forCamera;
 	private List<Source.ConnectionType> connectionTypes;
 
 	//******************************************************************************
@@ -45,162 +46,109 @@ public class SourceFragment extends Fragment
 	}
 
 	//******************************************************************************
-	// configureForSettings
+	// configure
 	//******************************************************************************
-	public void configureForSettings(Source source)
+	public void configure(Source source, boolean forCamera)
 	{
 		// save the source
 		this.source = source;
+		this.forCamera = forCamera;
 
-		final View view = getView();
-		setConnectionTypes(false, false);
-		EditText edit = (EditText) view.findViewById(R.id.source_port);
-		edit.setHint("");
-		edit = (EditText) view.findViewById(R.id.source_width);
-		edit.setHint(R.string.use_stream_width);
-		edit = (EditText) view.findViewById(R.id.source_height);
-		edit.setHint(R.string.use_stream_height);
-		edit = (EditText) view.findViewById(R.id.source_fps);
-		edit.setHint("");
-		edit = (EditText) view.findViewById(R.id.source_bps);
-		edit.setHint("");
+		setConnectionTypes();
+		if (!forCamera)
+		{
+			View view = getView();
+			EditText edit = (EditText) view.findViewById(R.id.source_port);
+			edit.setHint("");
+			edit = (EditText) view.findViewById(R.id.source_width);
+			edit.setHint(R.string.use_stream_width);
+			edit = (EditText) view.findViewById(R.id.source_height);
+			edit.setHint(R.string.use_stream_height);
+			edit = (EditText) view.findViewById(R.id.source_fps);
+			edit.setHint("");
+			edit = (EditText) view.findViewById(R.id.source_bps);
+			edit.setHint("");
+		}
 		setViews();
-	}
-
-	//******************************************************************************
-	// configureForNetwork
-	//******************************************************************************
-	public void configureForNetwork(Source source)
-	{
-		// save the source
-		this.source = source;
-
-		setConnectionTypes(true, false);
-		setViews();
-	}
-
-	//******************************************************************************
-	// configureForCamera
-	//******************************************************************************
-	public void configureForCamera(Source source)
-	{
-		// save the source
-		this.source = source;
-
-		setConnectionTypes(true, true);
-		setViews();
-	}
-
-	//******************************************************************************
-	// getSource
-	//******************************************************************************
-	public Source getSource()
-	{
-		// get the view and create a new source
-		View view = getView();
-		Source source = new Source();
-
-		// get the connection type
-		source.connectionType = getConnectionType(view);
-
-		// get the address
-		EditText edit = (EditText) view.findViewById(R.id.source_address);
-		source.address = edit.getText().toString().trim();
-
-		// get the numeric values
-		source.port = getNumber(view, R.id.source_port);
-		source.width = getNumber(view, R.id.source_width);
-		source.height = getNumber(view, R.id.source_height);
-		source.fps = getNumber(view, R.id.source_fps);
-		source.bps = getNumber(view, R.id.source_bps);
-
-		return source;
 	}
 
 	//******************************************************************************
 	// setConnectionTypes
 	//******************************************************************************
-	private void setConnectionTypes(boolean includeDefault, final boolean forCamera)
+	private void setConnectionTypes()
 	{
 		final View view = getView();
-		Spinner spinner = (Spinner) view.findViewById(R.id.source_connection_type);
-		spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+		if (forCamera)
 		{
-			@Override
-			public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id)
+			Spinner spinner = (Spinner) view.findViewById(R.id.source_connection_type);
+			spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
 			{
-				configureConnectionType(view, connectionTypes.get(position), forCamera);
-			}
+				@Override
+				public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id)
+				{
+					configureConnectionType(view, connectionTypes.get(position));
+				}
 
-			@Override
-			public void onNothingSelected(AdapterView<?> parentView)
-			{
-			}
-		});
-		List<String> names = new ArrayList<String>();
-		connectionTypes = new ArrayList<Source.ConnectionType>();
-		if (includeDefault)
-		{
-			names.add(App.getStr(R.string.default1));
-			connectionTypes.add(Source.ConnectionType.Default);
+				@Override
+				public void onNothingSelected(AdapterView<?> parentView)
+				{
+				}
+			});
+			connectionTypes = new ArrayList<>();
+			connectionTypes.add(Source.ConnectionType.RawTcpIp);
+			connectionTypes.add(Source.ConnectionType.RawHttp);
+			connectionTypes.add(Source.ConnectionType.RawMulticast);
+			configureConnectionType(view, getConnectionType(view));
 		}
-		names.add(App.getStr(R.string.raw_tcp_ip));
-		connectionTypes.add(Source.ConnectionType.RawTcpIp);
-		names.add(App.getStr(R.string.raw_multicast));
-		connectionTypes.add(Source.ConnectionType.RawMulticast);
-		names.add(App.getStr(R.string.raw_http));
-		connectionTypes.add(Source.ConnectionType.RawHttp);
-		ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(getActivity(),
-				android.R.layout.simple_spinner_item, names);
-		dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		spinner.setAdapter(dataAdapter);
-		configureConnectionType(view, getConnectionType(view), false);
+		else
+		{
+			LinearLayout layout = (LinearLayout) view.findViewById(R.id.source_connection_type_row);
+			layout.setVisibility(View.GONE);
+			if (source.connectionType != Source.ConnectionType.RawMulticast)
+			{
+				layout = (LinearLayout) view.findViewById(R.id.source_address_row);
+				layout.setVisibility(View.GONE);
+			}
+		}
 	}
 
 	//******************************************************************************
 	// configureConnectionType
 	//******************************************************************************
-	private void configureConnectionType(View view, Source.ConnectionType connectionType, boolean forCamera)
+	private void configureConnectionType(View view, Source.ConnectionType connectionType)
 	{
+		Settings settings = Utils.getSettings();
 		EditText addressEdit = (EditText) view.findViewById(R.id.source_address);
 		String address = addressEdit.getText().toString().trim();
 		int port = getNumber(view, R.id.source_port);
-		int defaultPort = App.getInt(R.integer.default_port);
-		int defaultHttpPort = App.getInt(R.integer.default_http_port);
-		if (connectionType == Source.ConnectionType.RawMulticast)
+		switch (connectionType)
 		{
-			if (address.length() == 0 || checkMulticastAddress(address) < 0)
-			{
-				addressEdit.setText("239.0.0.0");
-			}
-			if (port == defaultHttpPort || port < 0)
-			{
-				port = defaultPort;
-			}
-		}
-		else if (connectionType == Source.ConnectionType.RawHttp)
-		{
-			addressEdit.setText(forCamera ? (address.isEmpty() ? Utils.getBaseIpAddress() : address) : "");
-			if (port == defaultPort || port < 0)
-			{
-				port = defaultHttpPort;
-			}
-		}
-		else
-		{
-			addressEdit.setText(forCamera ? (address.isEmpty() ? Utils.getBaseIpAddress() : address) : "");
-			if (port == defaultHttpPort || port < 0)
-			{
-				port = defaultPort;
-			}
+			case RawTcpIp:
+				addressEdit.setText((address.isEmpty() || checkMulticastAddress(address) >= 0) ? Utils.getBaseIpAddress() : address);
+				if (port == settings.rawHttpSource.port || port == settings.rawMulticastSource.port || port < 0)
+				{
+					port = settings.rawTcpIpSource.port;
+				}
+				break;
+			case RawHttp:
+				addressEdit.setText((address.isEmpty() || checkMulticastAddress(address) >= 0) ? Utils.getBaseIpAddress() : address);
+				if (port == settings.rawTcpIpSource.port || port == settings.rawMulticastSource.port || port < 0)
+				{
+					port = settings.rawHttpSource.port;
+				}
+				break;
+			case RawMulticast:
+				if (address.isEmpty() || checkMulticastAddress(address) < 0)
+				{
+					addressEdit.setText(settings.rawMulticastSource.address);
+				}
+				if (port == settings.rawTcpIpSource.port || port == settings.rawHttpSource.port || port < 0)
+				{
+					port = settings.rawMulticastSource.port;
+				}
+				break;
 		}
 		setNumber(view, R.id.source_port, port);
-
-		// enable/disable the address and its prompt
-		boolean enableAddress = connectionType == Source.ConnectionType.RawMulticast || forCamera;
-		addressEdit.setEnabled(enableAddress);
-		TextView prompt = (TextView) view.findViewById(R.id.source_address_prompt);
-		prompt.setEnabled(enableAddress);
 	}
 
 	//******************************************************************************
@@ -212,20 +160,29 @@ public class SourceFragment extends Fragment
 		View view = getView();
 
 		// set the connection type
-		Spinner spinner = (Spinner) view.findViewById(R.id.source_connection_type);
-		for (int i = 0; i < connectionTypes.size(); i++)
+		if (forCamera)
 		{
-			Source.ConnectionType connectionType = connectionTypes.get(i);
-			if (connectionType == source.connectionType)
+			Spinner spinner = (Spinner) view.findViewById(R.id.source_connection_type);
+			if (spinner.getVisibility() == View.VISIBLE)
 			{
-				spinner.setSelection(i);
-				break;
+				for (int i = 0; i < connectionTypes.size(); i++)
+				{
+					Source.ConnectionType connectionType = connectionTypes.get(i);
+					if (connectionType == source.connectionType)
+					{
+						spinner.setSelection(i);
+						break;
+					}
+				}
 			}
 		}
 
 		// set the address
-		EditText edit = (EditText) view.findViewById(R.id.source_address);
-		edit.setText(source.address);
+		if (forCamera || source.connectionType == Source.ConnectionType.RawMulticast)
+		{
+			EditText edit = (EditText) view.findViewById(R.id.source_address);
+			edit.setText(source.address);
+		}
 
 		// set the numeric values
 		setNumber(view, R.id.source_port, source.port);
@@ -233,6 +190,42 @@ public class SourceFragment extends Fragment
 		setNumber(view, R.id.source_height, source.height);
 		setNumber(view, R.id.source_fps, source.fps);
 		setNumber(view, R.id.source_bps, source.bps);
+	}
+
+	//******************************************************************************
+	// getSource
+	//******************************************************************************
+	public Source getSource()
+	{
+		// get the view and create a new source
+		View view = getView();
+		Source editedSource = new Source(source);
+
+		// get the connection type
+		if (forCamera)
+		{
+			editedSource.connectionType = getConnectionType(view);
+		}
+
+		// get the address
+		if (forCamera || source.connectionType == Source.ConnectionType.RawMulticast)
+		{
+			EditText edit = (EditText) view.findViewById(R.id.source_address);
+			editedSource.address = edit.getText().toString().trim();
+		}
+		else
+		{
+			editedSource.address = "";
+		}
+
+		// get the numeric values
+		editedSource.port = getNumber(view, R.id.source_port);
+		editedSource.width = getNumber(view, R.id.source_width);
+		editedSource.height = getNumber(view, R.id.source_height);
+		editedSource.fps = getNumber(view, R.id.source_fps);
+		editedSource.bps = getNumber(view, R.id.source_bps);
+
+		return editedSource;
 	}
 
 	//******************************************************************************
@@ -340,21 +333,6 @@ public class SourceFragment extends Fragment
 		if (editedSource.port == 0)
 		{
 			App.error(getActivity(), R.string.error_no_port);
-			return false;
-		}
-
-		// indicate success
-		return true;
-	}
-
-	//******************************************************************************
-	// checkForNetwork
-	//******************************************************************************
-	public boolean checkForNetwork(Network network)
-	{
-		// check the common errors first
-		if (!checkCommon(network.source))
-		{
 			return false;
 		}
 

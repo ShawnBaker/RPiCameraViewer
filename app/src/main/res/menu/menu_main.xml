@@ -13,9 +13,6 @@
 	<item android:id="@+id/action_delete_all"
 		  android:title="@string/delete_all"
 		  app:showAsAction="never" />
-	<item android:id="@+id/action_networks"
-		  android:title="@string/networks"
-		  app:showAsAction="never" />
 	<item android:id="@+id/action_settings"
 		  android:title="@string/settings"
 		  app:showAsAction="never"/>

@@ -29,7 +29,6 @@ import java.util.List;
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.classes.Camera;
 import ca.frozen.rpicameraviewer.classes.HttpReader;
-import ca.frozen.rpicameraviewer.classes.Network;
 import ca.frozen.rpicameraviewer.classes.Source;
 import ca.frozen.rpicameraviewer.classes.TcpIpReader;
 import ca.frozen.rpicameraviewer.classes.Utils;
@@ -57,7 +56,7 @@ public class ScannerFragment extends DialogFragment
 		super.onCreate(savedInstanceState);
 		setRetainInstance(true);
 
-		// load the settings, networks and cameras
+		// load the settings and cameras
 		Utils.loadData();
 
 		// create and run the scanner asynchronously
@@ -175,7 +174,7 @@ public class ScannerFragment extends DialogFragment
 		private final static int NO_DEVICE = -1;
 		private final static int NUM_THREADS = 42;
 		private final static int SLEEP_TIMEOUT = 10;
-		private final static int DISMISS_TIMEOUT = 2000;
+		private final static int DISMISS_TIMEOUT = 1500;
 
 		// instance variables
 		private WeakReference<ScannerFragment> fragmentWeakRef;
@@ -199,13 +198,12 @@ public class ScannerFragment extends DialogFragment
 		{
 			// get our IP address and the default port
 			network = Utils.getNetworkName();
-			Network net = Utils.getNetwork(network);
 			ipAddress = Utils.getLocalIpAddress();
-			port = net.getSource().port;
+			port = Utils.getSettings().rawTcpIpSource.port;
 			device = 0;
 			numDone = 0;
-			cameras = Utils.getNetworkCameras(net);
-			newCameras = new ArrayList<Camera>();
+			cameras = Utils.getNetworkCameras(network);
+			newCameras = new ArrayList<>();
 		}
 
 		//******************************************************************************

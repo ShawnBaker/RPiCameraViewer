@@ -1,6 +1,7 @@
 // Copyright © 2016 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
@@ -36,7 +37,7 @@ public class VideoActivity extends AppCompatActivity implements VideoFragment.On
 		setContentView(R.layout.activity_video);
 		Log.d(TAG, "onCreate");
 
-		// load the settings, networks and cameras
+		// load the settings and cameras
 		Utils.loadData();
 
 		// get the camera object

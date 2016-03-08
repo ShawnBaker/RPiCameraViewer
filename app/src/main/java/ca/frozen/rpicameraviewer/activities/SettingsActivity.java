@@ -1,15 +1,20 @@
 // Copyright © 2016 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.classes.Settings;
+import ca.frozen.rpicameraviewer.classes.Source;
 import ca.frozen.rpicameraviewer.classes.Utils;
 import ca.frozen.rpicameraviewer.R;
 
@@ -21,11 +26,12 @@ public class SettingsActivity extends AppCompatActivity
 
 	// local constants
 	private final static String TAG = "SettingsActivity";
+	private final static int EDIT_SOURCE = 1;
 
 	// instance variables
 	private EditText cameraName;
 	private Spinner showCameras;
-	private SourceFragment sourceFragment;
+	private Settings settings;
 
 	//******************************************************************************
 	// onCreate
@@ -38,17 +44,87 @@ public class SettingsActivity extends AppCompatActivity
 		setContentView(R.layout.activity_settings);
 
 		// get the settings
-		Settings settings = Utils.getSettings();
+		settings = (savedInstanceState == null)
+						? new Settings(Utils.getSettings())
+						: (Settings) savedInstanceState.getParcelable("settings");
 
 		// set the views
 		cameraName = (EditText) findViewById(R.id.settings_camera_name);
+		String name = cameraName.getText().toString();
+		Log.d(TAG, name);
 		cameraName.setText(settings.cameraName);
 
 		showCameras = (Spinner) findViewById(R.id.settings_show_cameras);
 		showCameras.setSelection(settings.showAllCameras ? ALL_CAMERAS : FILTERED_CAMERAS);
 
-		sourceFragment = (SourceFragment) getSupportFragmentManager().findFragmentById(R.id.settings_source);
-		sourceFragment.configureForSettings(settings.source);
+		Button button = (Button) findViewById(R.id.settings_tcp_ip);
+		button.setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View v)
+			{
+				startSourceActivity(settings.rawTcpIpSource);
+			}
+		});
+
+		button = (Button) findViewById(R.id.settings_http);
+		button.setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View v)
+			{
+				startSourceActivity(settings.rawHttpSource);
+			}
+		});
+
+		button = (Button) findViewById(R.id.settings_multicast);
+		button.setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View v)
+			{
+				startSourceActivity(settings.rawMulticastSource);
+			}
+		});
+	}
+
+	//******************************************************************************
+	// onSaveInstanceState
+	//******************************************************************************
+	@Override
+	protected void onSaveInstanceState(Bundle state)
+	{
+		settings.cameraName = cameraName.getText().toString().trim();
+		settings.showAllCameras = showCameras.getSelectedItemPosition() == ALL_CAMERAS;
+		state.putParcelable("settings", settings);
+		super.onSaveInstanceState(state);
+	}
+
+	//******************************************************************************
+	// onActivityResult
+	//******************************************************************************
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{
+		if (requestCode == EDIT_SOURCE)
+		{
+			if (resultCode == RESULT_OK)
+			{
+				Source source = data.getParcelableExtra(SourceActivity.SOURCE);
+				switch (source.connectionType)
+				{
+					case RawTcpIp:
+						settings.rawTcpIpSource = source;
+						break;
+					case RawHttp:
+						settings.rawHttpSource = source;
+						break;
+					case RawMulticast:
+						settings.rawMulticastSource = source;
+						break;
+				}
+			}
+		}
 	}
 
 	//******************************************************************************
@@ -57,7 +133,7 @@ public class SettingsActivity extends AppCompatActivity
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
-		getMenuInflater().inflate(R.menu.menu_camera, menu);
+		getMenuInflater().inflate(R.menu.menu_save, menu);
 		return true;
 	}
 
@@ -72,10 +148,9 @@ public class SettingsActivity extends AppCompatActivity
 		// save the camera
 		if (id == R.id.action_save)
 		{
-			Settings editedSettings = getAndCheckEditedSettings();
-			if (editedSettings != null)
+			if (getAndCheckSettings())
 			{
-				Utils.setSettings(editedSettings);
+				Utils.setSettings(settings);
 				Utils.saveData();
 				finish();
 			}
@@ -86,31 +161,32 @@ public class SettingsActivity extends AppCompatActivity
 	}
 
 	//******************************************************************************
-	// getAndCheckEditedSettings
+	// getAndCheckSettings
 	//******************************************************************************
-	private Settings getAndCheckEditedSettings()
+	private boolean getAndCheckSettings()
 	{
-		// create a new settings and get the source
-		Settings editedSettings = new Settings(sourceFragment.getSource());
-
 		// get and check the camera name
-		editedSettings.cameraName = cameraName.getText().toString().trim();
-		if (editedSettings.cameraName.isEmpty())
+		settings.cameraName = cameraName.getText().toString().trim();
+		if (settings.cameraName.isEmpty())
 		{
 			App.error(this, R.string.error_no_camera_name);
-			return null;
+			return false;
 		}
 
 		// get the show all cameras flag
-		editedSettings.showAllCameras = showCameras.getSelectedItemPosition() == ALL_CAMERAS;
+		settings.showAllCameras = showCameras.getSelectedItemPosition() == ALL_CAMERAS;
 
-		// check the source values
-		if (!sourceFragment.checkForSettings(editedSettings.source))
-		{
-			return null;
-		}
+		// indicate success
+		return true;
+	}
 
-		// return the new settings
-		return editedSettings;
+	//******************************************************************************
+	// startSourceActivity
+	//******************************************************************************
+	private void startSourceActivity(Source source)
+	{
+		Intent intent = new Intent(App.getContext(), SourceActivity.class);
+		intent.putExtra(SourceActivity.SOURCE, source);
+		startActivityForResult(intent, EDIT_SOURCE);
 	}
 }

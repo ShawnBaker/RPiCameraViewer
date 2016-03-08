@@ -43,6 +43,21 @@ public class Source implements Comparable, Parcelable
 	//******************************************************************************
 	// Source
 	//******************************************************************************
+	public Source(Source source)
+	{
+		connectionType = source.connectionType;
+		address = source.address;
+		port = source.port;
+		width = source.width;
+		height = source.height;
+		fps = source.fps;
+		bps = source.bps;
+		//Log.d(TAG, "source: " + toString());
+	}
+
+	//******************************************************************************
+	// Source
+	//******************************************************************************
 	public Source(JSONObject obj)
 	{
 		try
@@ -67,7 +82,7 @@ public class Source implements Comparable, Parcelable
 	//******************************************************************************
 	private void initialize()
 	{
-		connectionType = ConnectionType.Default;
+		connectionType = ConnectionType.RawTcpIp;
 		address = "";
 		port = 0;
 		width = 0;
@@ -82,7 +97,7 @@ public class Source implements Comparable, Parcelable
 	public Source compound(Source source)
 	{
 		Source newSource = new Source();
-		newSource.connectionType = (source.connectionType != Source.ConnectionType.Default) ? source.connectionType : connectionType;
+		newSource.connectionType = source.connectionType;
 		newSource.address = source.address.isEmpty() ? address : source.address;
 		newSource.port = (source.port != 0) ? source.port : port;
 		newSource.width = (source.width != 0) ? source.width : width;
@@ -232,8 +247,7 @@ public class Source implements Comparable, Parcelable
 	{
 		if (n == 3) return ConnectionType.RawHttp;
 		if (n == 2) return ConnectionType.RawMulticast;
-		if (n == 1) return ConnectionType.RawTcpIp;
-		return ConnectionType.Default;
+		return ConnectionType.RawTcpIp;
 	}
 
 	//******************************************************************************
@@ -243,8 +257,7 @@ public class Source implements Comparable, Parcelable
 	{
 		if (m == ConnectionType.RawHttp) return 3;
 		if (m == ConnectionType.RawMulticast) return 2;
-		if (m == ConnectionType.RawTcpIp) return 1;
-		return 0;
+		return 1;
 	}
 
 	//******************************************************************************
@@ -252,9 +265,8 @@ public class Source implements Comparable, Parcelable
 	//******************************************************************************
 	public enum ConnectionType
 	{
-		Default,
 		RawTcpIp,
-		RawMulticast,
-		RawHttp
+		RawHttp,
+		RawMulticast
 	}
 }

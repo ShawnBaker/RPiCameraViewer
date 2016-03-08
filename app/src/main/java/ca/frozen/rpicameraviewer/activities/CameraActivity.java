@@ -1,24 +1,17 @@
 // Copyright © 2016 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
-import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.Spinner;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.classes.Camera;
-import ca.frozen.rpicameraviewer.classes.Network;
 import ca.frozen.rpicameraviewer.classes.Utils;
 import ca.frozen.rpicameraviewer.R;
 
@@ -31,10 +24,9 @@ public class CameraActivity extends AppCompatActivity
 	private final static String TAG = "CameraActivity";
 
 	// instance variables
-	private EditText nameEdit;
-	private Spinner networkSpinner;
-	private SourceFragment sourceFragment;
 	private Camera camera;
+	private EditText nameEdit;
+	private SourceFragment sourceFragment;
 
 	//******************************************************************************
 	// onCreate
@@ -46,49 +38,24 @@ public class CameraActivity extends AppCompatActivity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_camera);
 
-		// load the settings, networks and cameras
+		// load the settings and cameras
 		Utils.loadData();
 
 		// get the camera object
 		Bundle data = getIntent().getExtras();
-		camera = (Camera)data.getParcelable(CAMERA);
-
-		// handled clicks on the edit network image
-		ImageView editNetwork = (ImageView) findViewById(R.id.camera_edit_network);
-		editNetwork.setOnClickListener(new View.OnClickListener()
-		{
-			@Override
-			public void onClick(View v)
-			{
-				int pos = networkSpinner.getSelectedItemPosition();
-				Network network = Utils.getNetworks().get(pos);
-				Intent intent = new Intent(App.getContext(), NetworkActivity.class);
-				intent.putExtra(NetworkActivity.NETWORK, network);
-				startActivity(intent);
-			}
-		});
+		camera = data.getParcelable(CAMERA);
 
 		// set the name
 		nameEdit = (EditText) findViewById(R.id.camera_name);
 		nameEdit.setText(camera.name);
 
-		// set the networks
-		List<Network> networks = Utils.getNetworks();
-		networkSpinner = (Spinner) findViewById(R.id.camera_network);
-		List<String> networkNames = new ArrayList<String>();
-		for (Network network : networks)
-		{
-			networkNames.add(network.name);
-		}
-		ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
-				android.R.layout.simple_spinner_item, networkNames);
-		dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		networkSpinner.setAdapter(dataAdapter);
-		networkSpinner.setSelection(networks.indexOf(camera.network));
+		// set the network
+		TextView network = (TextView) findViewById(R.id.camera_network);
+		network.setText(camera.network);
 
 		// set the source fragment
 		sourceFragment = (SourceFragment)getSupportFragmentManager().findFragmentById(R.id.camera_source);
-		sourceFragment.configureForCamera(camera.source);
+		sourceFragment.configure(camera.source, true);
 	}
 
 	//******************************************************************************
@@ -97,7 +64,7 @@ public class CameraActivity extends AppCompatActivity
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
-		getMenuInflater().inflate(R.menu.menu_camera, menu);
+		getMenuInflater().inflate(R.menu.menu_save, menu);
 		return true;
 	}
 
@@ -136,7 +103,7 @@ public class CameraActivity extends AppCompatActivity
 	private Camera getAndCheckEditedCamera()
 	{
 		// create a new network and get the source
-		Camera editedCamera = new Camera();
+		Camera editedCamera = new Camera(camera);
 		editedCamera.source = sourceFragment.getSource();
 
 		// get and check the camera name
@@ -158,10 +125,6 @@ public class CameraActivity extends AppCompatActivity
 				return null;
 			}
 		}
-
-		// get the network
-		int pos = networkSpinner.getSelectedItemPosition();
-		editedCamera.network = Utils.getNetworks().get(pos);
 
 		// check the source values
 		if (!sourceFragment.checkForCamera(editedCamera))

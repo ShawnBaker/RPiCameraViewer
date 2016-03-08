@@ -2,12 +2,11 @@
 <!-- Copyright © 2016 Shawn Baker using the MIT License. -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-	tools:context=".activities.SettingsActivity">
+    xmlns:tools="http://schemas.android.com/tools" >
 
     <item android:id="@+id/action_save"
           android:title="@string/save"
-          android:icon="@android:drawable/ic_menu_save"
+          android:icon="@drawable/save"
           app:showAsAction="always" />
 
 </menu>

@@ -9,6 +9,10 @@
         <item name="android:actionMenuTextAppearance">@style/AppMenuTextAppearance</item>
     </style>
 
+    <style name="AppBackAsCancelTheme" parent="AppTheme">
+        <item name="android:homeAsUpIndicator">@drawable/white_x</item>
+    </style>
+
     <style name="AppFullScreenTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowActionBar">false</item>
         <item name="android:windowContentOverlay">@null</item>

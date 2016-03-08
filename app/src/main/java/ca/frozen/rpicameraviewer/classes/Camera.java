@@ -14,7 +14,7 @@ public class Camera implements Comparable, Parcelable
 	private final static String TAG = "Camera";
 
 	// instance variables
-	public Network network;
+	public String network;
 	public String name;
 	public Source source;
 
@@ -23,7 +23,7 @@ public class Camera implements Comparable, Parcelable
 	//******************************************************************************
     public Camera(String network, String name, Source source)
     {
-		this.network = Utils.getNetwork(network);
+		this.network = network;
         this.name = name;
         this.source = source;
 		//Log.d(TAG, "values/source: " + toString());
@@ -34,7 +34,7 @@ public class Camera implements Comparable, Parcelable
 	//******************************************************************************
 	public Camera(String network, String name, String address)
 	{
-		this.network = Utils.getNetwork(network);
+		this.network = network;
 		this.name = name;
 		source = new Source();
 		source.address = address;
@@ -51,6 +51,17 @@ public class Camera implements Comparable, Parcelable
 		source.port = port;
 		source.connectionType = connectionType;
 		//Log.d(TAG, "values/connectionType: " + toString());
+	}
+
+	//******************************************************************************
+	// Camera
+	//******************************************************************************
+	public Camera(Camera camera)
+	{
+		network = camera.network;
+		name = camera.name;
+		source = new Source(camera.source);
+		//Log.d(TAG, "camera: " + toString());
 	}
 
 	//******************************************************************************
@@ -78,7 +89,7 @@ public class Camera implements Comparable, Parcelable
 	{
 		try
 		{
-			network = Utils.getNetwork(obj.getString("network"));
+			network = obj.getString("network");
 			name = obj.getString("name");
 			source = new Source(obj.getJSONObject("source"));
 		}
@@ -94,7 +105,7 @@ public class Camera implements Comparable, Parcelable
 	//******************************************************************************
 	private void initialize()
 	{
-		network = Utils.getNetwork(Utils.getWifiName());
+		network = Utils.getNetworkName();
 		name = Utils.getDefaultCameraName();
 		source = new Source();
 		source.address = Utils.getBaseIpAddress();
@@ -106,7 +117,7 @@ public class Camera implements Comparable, Parcelable
 	@Override
 	public void writeToParcel(Parcel dest, int flags)
 	{
-		dest.writeString(network.name);
+		dest.writeString(network);
 		dest.writeString(name);
 		dest.writeParcelable(source, flags);
 	}
@@ -116,7 +127,7 @@ public class Camera implements Comparable, Parcelable
 	//******************************************************************************
 	private void readFromParcel(Parcel in)
 	{
-		network = Utils.getNetwork(in.readString());
+		network = in.readString();
 		name = in.readString();
 		source = (Source) in.readParcelable(Source.class.getClassLoader());
 	}
@@ -182,7 +193,7 @@ public class Camera implements Comparable, Parcelable
     @Override
     public String toString()
     {
-        return name + "," + network.name + "," + source.toString();
+        return name + "," + network + "," + source.toString();
     }
 
 	//******************************************************************************
@@ -193,7 +204,7 @@ public class Camera implements Comparable, Parcelable
 		try
 		{
 			JSONObject obj = new JSONObject();
-			obj.put("network", network.name);
+			obj.put("network", network);
 			obj.put("name", name);
 			obj.put("source", source.toJson());
 			return obj;
@@ -210,7 +221,7 @@ public class Camera implements Comparable, Parcelable
 	//******************************************************************************
 	public Source getSource()
 	{
-		return network.getSource().compound(source);
+		return Utils.getSettings().getSource(source.connectionType).compound(source);
 	}
 
 	//******************************************************************************

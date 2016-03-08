@@ -4,8 +4,6 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
-    <dimen name="prompt_indent">20dp</dimen>
-    <dimen name="prompt_indented_width">120dp</dimen>
-    <dimen name="prompt_width">140dp</dimen>
+    <dimen name="prompt_width">150dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
 </resources>

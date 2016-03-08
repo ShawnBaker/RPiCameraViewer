@@ -48,8 +48,8 @@ public class CameraAdapter extends BaseAdapter
 		}
 		else
 		{
-			Network network = Utils.getNetwork(Utils.getNetworkName());
-			showAllCameras = network == null;
+			String network = Utils.getNetworkName();
+			showAllCameras = network == null || network.isEmpty();
 			cameras = showAllCameras ? Utils.getCameras() : Utils.getNetworkCameras(network);
 		}
 		showNetwork = showAllCameras;
@@ -125,7 +125,7 @@ public class CameraAdapter extends BaseAdapter
 			{
 				fullAddress = Utils.getHttpAddress(fullAddress);
 			}
-			address.setText((showNetwork ? (camera.network.name + ":") : "") + fullAddress);
+			address.setText((showNetwork ? (camera.network + ":") : "") + fullAddress);
 		}
 		else
 		{

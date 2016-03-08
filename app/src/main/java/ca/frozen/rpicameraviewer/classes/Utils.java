@@ -40,7 +40,6 @@ import ca.frozen.rpicameraviewer.R;
 public class Utils
 {
 	private static Settings settings = null;
-	private static List<Network> networks = null;
 	private static List<Camera> cameras = null;
 
 	//******************************************************************************
@@ -77,35 +76,6 @@ public class Utils
 			}
 		}
 
-		// load the networks
-		if (networks == null)
-		{
-			if (preferences == null)
-			{
-				preferences = PreferenceManager.getDefaultSharedPreferences(App.getContext());
-			}
-			networks = new ArrayList<Network>();
-			try
-			{
-				String networksString = preferences.getString(App.getStr(R.string.settings_networks), "");
-				if (!networksString.isEmpty())
-				{
-					JSONArray arr = new JSONArray(networksString);
-					for (int i = 0; i < arr.length(); i++)
-					{
-						JSONObject obj = arr.getJSONObject(i);
-						Network network = new Network(obj);
-						networks.add(network);
-					}
-				}
-			}
-			catch (JSONException e)
-			{
-				save = true;
-			}
-			Collections.sort(networks);
-		}
-
 		// load the cameras
 		if (cameras == null)
 		{
@@ -113,7 +83,7 @@ public class Utils
 			{
 				preferences = PreferenceManager.getDefaultSharedPreferences(App.getContext());
 			}
-			cameras = new ArrayList<Camera>();
+			cameras = new ArrayList<>();
 			try
 			{
 				String camerasString = preferences.getString(App.getStr(R.string.settings_cameras), "");
@@ -148,7 +118,6 @@ public class Utils
 	public static void reloadData()
 	{
 		settings = null;
-		networks = null;
 		cameras = null;
 		loadData();
 	}
@@ -171,22 +140,6 @@ public class Utils
 			}
 			JSONObject obj = settings.toJson();
 			editor.putString(App.getStr(R.string.settings_settings), obj.toString());
-		}
-
-		// save the networks
-		if (networks != null)
-		{
-			if (preferences == null)
-			{
-				preferences = PreferenceManager.getDefaultSharedPreferences(App.getContext());
-				editor = preferences.edit();
-			}
-			JSONArray arr = new JSONArray();
-			for (Network network : networks)
-			{
-				arr.put(network.toJson());
-			}
-			editor.putString(App.getStr(R.string.settings_networks), arr.toString());
 		}
 
 		// save the cameras
@@ -231,15 +184,6 @@ public class Utils
 	}
 
 	//******************************************************************************
-	// getNetworks
-	//******************************************************************************
-	public static List<Network> getNetworks()
-	{
-		loadData();
-		return networks;
-	}
-
-	//******************************************************************************
 	// getDefaultCameraName
 	//******************************************************************************
 	public static String getDefaultCameraName()
@@ -249,65 +193,23 @@ public class Utils
 	}
 
 	//******************************************************************************
-	// getDefaultPort
-	//******************************************************************************
-	public static int getDefaultPort()
-	{
-		loadData();
-		return settings.source.port;
-	}
-
-	//******************************************************************************
-	// getNetwork
-	//******************************************************************************
-	public static Network getNetwork(String name)
-	{
-		loadData();
-
-		// search for an existing network with the same name
-		for (Network network : networks)
-		{
-			if (network.name.equals(name))
-			{
-				return network;
-			}
-		}
-
-		// create a new network and add it to the list
-		Network network = new Network(name);
-		networks.add(network);
-		return network;
-	}
-
-	//******************************************************************************
 	// getNetworkCameras
 	//******************************************************************************
-	public static List<Camera> getNetworkCameras(Network network)
+	public static List<Camera> getNetworkCameras(String network)
 	{
 		loadData();
 
 		// find the cameras for the network
-		List<Camera> networkCameras = new ArrayList<Camera>();
+		List<Camera> networkCameras = new ArrayList<>();
 		for (Camera camera : cameras)
 		{
-			if (camera.network == network)
+			if (camera.network.equals(network))
 			{
 				networkCameras.add(camera);
 			}
 		}
 
 		return networkCameras;
-	}
-
-	//******************************************************************************
-	// getNetworkCameras
-	//******************************************************************************
-	public static List<Camera> getNetworkCameras(String networkName)
-	{
-		loadData();
-
-		Network network = findNetwork(networkName);
-		return (network != null) ? getNetworkCameras(network) : null;
 	}
 
 	//******************************************************************************
@@ -331,23 +233,6 @@ public class Utils
 			if (camera.name.equals(name))
 			{
 				return camera;
-			}
-		}
-		return null;
-	}
-
-	//******************************************************************************
-	// findNetwork
-	//******************************************************************************
-	public static Network findNetwork(String name)
-	{
-		loadData();
-
-		for (Network network : networks)
-		{
-			if (network.name.equals(name))
-			{
-				return network;
 			}
 		}
 		return null;
