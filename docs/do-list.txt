@@ -2,14 +2,15 @@ main
 	don't do initial scan when coming back from other activities
 
 scanner
+	make it possible to edit both default port numbers and rescan
 	UV4L camera detection is missing positives
 	
 video
+	make status and navigation bars semi-transparent
 	fix multicast support
 	swipe between cameras
 
 miscellaneous
-	multiple default sources in settings, one for each communication method
 	post about it
 	create a view with multiple video fragments
 	test with higher (and lower) frame and bit rates
