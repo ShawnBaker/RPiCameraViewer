@@ -15,8 +15,8 @@ public class HttpReader extends RawH264Reader
 	private final static String TAG = "HttpReader";
 	private final static int CONNECT_TIMEOUT = 5000;
 	private final static int READ_TIMEOUT = 5000;
-	private final static int TEST_CONNECT_TIMEOUT = 200;
-	private final static int TEST_READ_TIMEOUT = 200;
+	private final static int TEST_CONNECT_TIMEOUT = 300;
+	private final static int TEST_READ_TIMEOUT = 300;
 	private final static int BLOCK_SIZE = 2048;
 	private final static int NUM_START_BLOCKS = 10;
 	private final static int MAX_BLOCKS = 100;
