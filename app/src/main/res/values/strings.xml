@@ -79,8 +79,8 @@
     <string name="raw_http">HTTP raw H.264</string>
     <string name="save">Save</string>
     <string name="scan">Scan</string>
-    <string name="scanning_for_cameras">Scanning for cameras...</string>
-    <string name="scanning_on_port" formatted="false">Scanning on port %d</string>
+    <string name="scanning_for_cameras"><b>Scanning for Cameras</b></string>
+    <string name="scanning_on_ports" formatted="false">Scanning on ports %d and %d</string>
     <string name="settings">Settings</string>
     <string name="settings_cameras">cameras</string>
     <string name="settings_settings">settings</string>
