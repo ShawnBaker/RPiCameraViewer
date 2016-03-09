@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -29,6 +30,7 @@ import java.util.List;
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.classes.Camera;
 import ca.frozen.rpicameraviewer.classes.HttpReader;
+import ca.frozen.rpicameraviewer.classes.Settings;
 import ca.frozen.rpicameraviewer.classes.Source;
 import ca.frozen.rpicameraviewer.classes.TcpIpReader;
 import ca.frozen.rpicameraviewer.classes.Utils;
@@ -61,7 +63,7 @@ public class ScannerFragment extends DialogFragment
 
 		// create and run the scanner asynchronously
 		DeviceScanner scanner = new DeviceScanner(this);
-		scannerWeakRef = new WeakReference<DeviceScanner>(scanner);
+		scannerWeakRef = new WeakReference<>(scanner);
 		scanner.execute();
 	}
 
@@ -82,7 +84,7 @@ public class ScannerFragment extends DialogFragment
 		Dialog dialog = getDialog();
 		if (dialog != null)
 		{
-			dialog.setTitle(R.string.scanning_for_cameras);
+			dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 			dialog.setCancelable(false);
 			dialog.setCanceledOnTouchOutside(false);
 			dialog.setOnKeyListener(new DialogInterface.OnKeyListener()
@@ -179,7 +181,7 @@ public class ScannerFragment extends DialogFragment
 		// instance variables
 		private WeakReference<ScannerFragment> fragmentWeakRef;
 		private String ipAddress, network;
-		private int port, device, numDone;
+		private int tcpIpPort, httpPort, device, numDone;
 		private List<Camera> cameras, newCameras;
 
 		//******************************************************************************
@@ -187,7 +189,7 @@ public class ScannerFragment extends DialogFragment
 		//******************************************************************************
 		private DeviceScanner(ScannerFragment fragment)
 		{
-			fragmentWeakRef = new WeakReference<ScannerFragment>(fragment);
+			fragmentWeakRef = new WeakReference<>(fragment);
 		}
 
 		//******************************************************************************
@@ -199,7 +201,9 @@ public class ScannerFragment extends DialogFragment
 			// get our IP address and the default port
 			network = Utils.getNetworkName();
 			ipAddress = Utils.getLocalIpAddress();
-			port = Utils.getSettings().rawTcpIpSource.port;
+			Settings settings = Utils.getSettings();
+			tcpIpPort = settings.rawTcpIpSource.port;
+			httpPort = settings.rawHttpSource.port;
 			device = 0;
 			numDone = 0;
 			cameras = Utils.getNetworkCameras(network);
@@ -236,7 +240,7 @@ public class ScannerFragment extends DialogFragment
 							try
 							{
 								// try to connect to the device
-								Socket socket = TcpIpReader.getConnection(address, port);
+								Socket socket = TcpIpReader.getConnection(address, tcpIpPort);
 								if (socket != null)
 								{
 									Camera camera = new Camera(network, "", address);
@@ -252,7 +256,7 @@ public class ScannerFragment extends DialogFragment
 							{
 								try
 								{
-									HttpURLConnection http = HttpReader.getConnection(address, 8080, true);
+									HttpURLConnection http = HttpReader.getConnection(address, httpPort, true);
 									if (http != null)
 									{
 										InputStream stream = http.getInputStream();
@@ -262,7 +266,7 @@ public class ScannerFragment extends DialogFragment
 										if (page.contains("UV4L Streaming Server"))
 										{
 											address += "/stream/video.h264";
-											Camera camera = new Camera(network, "", address, 8080, Source.ConnectionType.RawHttp);
+											Camera camera = new Camera(network, "", address, httpPort, Source.ConnectionType.RawHttp);
 											addCamera(camera);
 											http.disconnect();
 											found = true;
@@ -439,7 +443,7 @@ public class ScannerFragment extends DialogFragment
 				{
 					public void run()
 					{
-						message.setText(String.format(App.getStr(R.string.scanning_on_port), port));
+						message.setText(String.format(App.getStr(R.string.scanning_on_ports), tcpIpPort, httpPort));
 						progress.setProgress(numDone);
 						status.setText(String.format(App.getStr(R.string.num_new_cameras_found), newCameras.size()));
 						if (newCameras.size() > 0)
