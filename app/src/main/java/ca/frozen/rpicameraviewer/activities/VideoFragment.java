@@ -600,7 +600,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 			try
 			{
 				// get the multicast lock if necessary
-				if (camera.getSource().connectionType == Source.ConnectionType.RawMulticast)
+				if (camera.source.connectionType == Source.ConnectionType.RawMulticast)
 				{
 					WifiManager wifi = (WifiManager) getActivity().getSystemService(App.getContext().WIFI_SERVICE);
 					if (wifi != null)
