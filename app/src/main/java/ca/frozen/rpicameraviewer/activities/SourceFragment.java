@@ -12,7 +12,6 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -352,15 +351,14 @@ public class SourceFragment extends Fragment
 		}
 
 		// make sure the address is a valid URL
-		Source.ConnectionType connectionType = camera.getConnectionType();
-		if (connectionType == Source.ConnectionType.RawTcpIp &&
+		if (camera.source.connectionType == Source.ConnectionType.RawTcpIp &&
 			!Patterns.WEB_URL.matcher(camera.source.address).matches())
 		{
 			App.error(getActivity(), R.string.error_bad_address);
 			return false;
 		}
 
-		if (connectionType == Source.ConnectionType.RawHttp)
+		if (camera.source.connectionType == Source.ConnectionType.RawHttp)
 		{
 			// check the address
 			if (!camera.source.address.isEmpty())
