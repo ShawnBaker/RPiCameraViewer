@@ -223,12 +223,4 @@ public class Camera implements Comparable, Parcelable
 	{
 		return Utils.getSettings().getSource(source.connectionType).compound(source);
 	}
-
-	//******************************************************************************
-	// getConnectionType
-	//******************************************************************************
-	public Source.ConnectionType getConnectionType()
-	{
-		return getSource().connectionType;
-	}
 }
