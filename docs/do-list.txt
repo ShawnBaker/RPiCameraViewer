@@ -3,10 +3,9 @@ main
 
 scanner
 	make it possible to edit both default port numbers and rescan
-	UV4L camera detection is missing positives
 	
 video
-	make status and navigation bars semi-transparent
+	make navigation bar semi-transparent
 	fix multicast support
 	swipe between cameras
 
