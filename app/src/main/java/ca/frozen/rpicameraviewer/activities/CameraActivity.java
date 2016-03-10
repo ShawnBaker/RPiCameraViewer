@@ -104,7 +104,6 @@ public class CameraActivity extends AppCompatActivity
 	{
 		// create a new network and get the source
 		Camera editedCamera = new Camera(camera);
-		editedCamera.source = sourceFragment.getSource();
 
 		// get and check the camera name
 		editedCamera.name = nameEdit.getText().toString().trim();
@@ -127,12 +126,13 @@ public class CameraActivity extends AppCompatActivity
 		}
 
 		// check the source values
-		if (!sourceFragment.checkForCamera(editedCamera))
+		editedCamera.source = sourceFragment.getAndCheckEditedSource();
+		if (editedCamera.source == null)
 		{
 			return null;
 		}
 
-		// return the new settings
+		// return the successfully edited camera
 		return editedCamera;
 	}
 }
