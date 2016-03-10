@@ -66,9 +66,9 @@ public class CameraAdapter extends BaseAdapter
 	// getItem
 	//******************************************************************************
 	@Override
-	public Object getItem(int position)
+	public Camera getItem(int position)
 	{
-		return (cameras.size() > 0) ? cameras.get(position) : new Camera();
+		return cameras.get(position);
 	}
 
 	//******************************************************************************
@@ -111,7 +111,7 @@ public class CameraAdapter extends BaseAdapter
 		if (type == VIEW_CAMERA)
 		{
 			// get the camera for this row
-			Camera camera = cameras.get(position);
+			Camera camera = getItem(position);
 
 			// get the views
 			TextView name = (TextView) convertView.findViewById(R.id.camera_name);
