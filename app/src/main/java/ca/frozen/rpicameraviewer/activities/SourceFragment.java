@@ -4,7 +4,6 @@ package ca.frozen.rpicameraviewer.activities;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,7 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ca.frozen.rpicameraviewer.App;
-import ca.frozen.rpicameraviewer.classes.Camera;
 import ca.frozen.rpicameraviewer.classes.Settings;
 import ca.frozen.rpicameraviewer.classes.Source;
 import ca.frozen.rpicameraviewer.classes.Utils;
@@ -92,9 +90,9 @@ public class SourceFragment extends Fragment
 			edit = (EditText) view.findViewById(R.id.source_height);
 			edit.setHint(R.string.use_stream_height);
 			edit = (EditText) view.findViewById(R.id.source_fps);
-			edit.setHint("");
+			edit.setHint(R.string.dont_set);
 			edit = (EditText) view.findViewById(R.id.source_bps);
-			edit.setHint("");
+			edit.setHint(R.string.dont_set);
 		}
 
 		// set the view values

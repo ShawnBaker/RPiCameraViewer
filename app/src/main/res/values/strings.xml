@@ -24,6 +24,7 @@
     <string name="delete">Delete</string>
     <string name="delete_all">Delete All</string>
     <string name="done">Done</string>
+    <string name="dont_set">don\'t set</string>
     <string name="edit">Edit</string>
     <string name="error_bad_address">The address is not a valid URL.</string>
     <string name="error_bad_bps">The bits per second must be a positive number or empty.</string>
