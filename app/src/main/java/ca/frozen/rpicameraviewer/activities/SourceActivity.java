@@ -83,7 +83,7 @@ public class SourceActivity extends AppCompatActivity
 		// save the camera
 		if (id == R.id.action_save)
 		{
-			Source editedSource = getAndCheckEditedSource();
+			Source editedSource = sourceFragment.getAndCheckEditedSource();
 			if (editedSource != null)
 			{
 				Intent intent = new Intent();
@@ -95,23 +95,5 @@ public class SourceActivity extends AppCompatActivity
 		}
 
 		return super.onOptionsItemSelected(item);
-	}
-
-	//******************************************************************************
-	// getAndCheckEditedSettings
-	//******************************************************************************
-	private Source getAndCheckEditedSource()
-	{
-		// get the edited source
-		Source editedSource = sourceFragment.getSource();
-
-		// check the source values
-		if (!sourceFragment.checkForSettings(editedSource))
-		{
-			return null;
-		}
-
-		// return the new source
-		return editedSource;
 	}
 }
