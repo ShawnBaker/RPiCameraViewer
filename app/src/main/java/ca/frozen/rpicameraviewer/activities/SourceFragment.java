@@ -49,33 +49,10 @@ public class SourceFragment extends Fragment
 	//******************************************************************************
 	public void configure(Source source, boolean forCamera)
 	{
-		// save the source
+		// save the parameters
 		this.source = source;
 		this.forCamera = forCamera;
 
-		setConnectionTypes();
-		if (!forCamera)
-		{
-			View view = getView();
-			EditText edit = (EditText) view.findViewById(R.id.source_port);
-			edit.setHint("");
-			edit = (EditText) view.findViewById(R.id.source_width);
-			edit.setHint(R.string.use_stream_width);
-			edit = (EditText) view.findViewById(R.id.source_height);
-			edit.setHint(R.string.use_stream_height);
-			edit = (EditText) view.findViewById(R.id.source_fps);
-			edit.setHint("");
-			edit = (EditText) view.findViewById(R.id.source_bps);
-			edit.setHint("");
-		}
-		setViews();
-	}
-
-	//******************************************************************************
-	// setConnectionTypes
-	//******************************************************************************
-	private void setConnectionTypes()
-	{
 		final View view = getView();
 		if (forCamera)
 		{
@@ -108,7 +85,20 @@ public class SourceFragment extends Fragment
 				layout = (LinearLayout) view.findViewById(R.id.source_address_row);
 				layout.setVisibility(View.GONE);
 			}
+			EditText edit = (EditText) view.findViewById(R.id.source_port);
+			edit.setHint("");
+			edit = (EditText) view.findViewById(R.id.source_width);
+			edit.setHint(R.string.use_stream_width);
+			edit = (EditText) view.findViewById(R.id.source_height);
+			edit.setHint(R.string.use_stream_height);
+			edit = (EditText) view.findViewById(R.id.source_fps);
+			edit.setHint("");
+			edit = (EditText) view.findViewById(R.id.source_bps);
+			edit.setHint("");
 		}
+
+		// set the view values
+		setViews(source);
 	}
 
 	//******************************************************************************
@@ -116,44 +106,71 @@ public class SourceFragment extends Fragment
 	//******************************************************************************
 	private void configureConnectionType(View view, Source.ConnectionType connectionType)
 	{
+		// get the current values and settings
+		Source newSource = getSource();
 		Settings settings = Utils.getSettings();
-		EditText addressEdit = (EditText) view.findViewById(R.id.source_address);
-		String address = addressEdit.getText().toString().trim();
-		int port = getNumber(view, R.id.source_port);
+
+		// adjust the values for the new connection type
 		switch (connectionType)
 		{
 			case RawTcpIp:
-				addressEdit.setText((address.isEmpty() || checkMulticastAddress(address) >= 0) ? Utils.getBaseIpAddress() : address);
-				if (port == settings.rawHttpSource.port || port == settings.rawMulticastSource.port || port < 0)
+				if (newSource.address.isEmpty() || checkMulticastAddress(newSource.address) >= 0)
 				{
-					port = settings.rawTcpIpSource.port;
+					newSource.address = Utils.getBaseIpAddress();
 				}
+				adjustValues(newSource, settings.rawHttpSource, settings.rawMulticastSource, settings.rawTcpIpSource);
 				break;
 			case RawHttp:
-				addressEdit.setText((address.isEmpty() || checkMulticastAddress(address) >= 0) ? Utils.getBaseIpAddress() : address);
-				if (port == settings.rawTcpIpSource.port || port == settings.rawMulticastSource.port || port < 0)
+				if (newSource.address.isEmpty() || checkMulticastAddress(newSource.address) >= 0)
 				{
-					port = settings.rawHttpSource.port;
+					newSource.address = Utils.getBaseIpAddress();
 				}
+				adjustValues(newSource, settings.rawTcpIpSource, settings.rawMulticastSource, settings.rawHttpSource);
 				break;
 			case RawMulticast:
-				if (address.isEmpty() || checkMulticastAddress(address) < 0)
+				if (newSource.address.isEmpty() || checkMulticastAddress(newSource.address) < 0)
 				{
-					addressEdit.setText(settings.rawMulticastSource.address);
+					newSource.address = settings.rawMulticastSource.address;
 				}
-				if (port == settings.rawTcpIpSource.port || port == settings.rawHttpSource.port || port < 0)
-				{
-					port = settings.rawMulticastSource.port;
-				}
+				adjustValues(newSource, settings.rawTcpIpSource, settings.rawHttpSource, settings.rawMulticastSource);
 				break;
 		}
-		setNumber(view, R.id.source_port, port);
+
+		// update the view values
+		setViews(newSource);
+	}
+
+	//******************************************************************************
+	// adjustValues
+	//******************************************************************************
+	private void adjustValues(Source newSource, Source fromSource1, Source fromSource2, Source toSource)
+	{
+		if (newSource.port < 0 || newSource.port == fromSource1.port || newSource.port == fromSource2.port)
+		{
+			newSource.port = toSource.port;
+		}
+		if (newSource.width < 0 || newSource.width == fromSource1.width || newSource.width == fromSource2.width)
+		{
+			newSource.width = toSource.width;
+		}
+		if (newSource.height < 0 || newSource.height == fromSource1.height || newSource.height == fromSource2.height)
+		{
+			newSource.height = toSource.height;
+		}
+		if (newSource.fps < 0 || newSource.fps == fromSource1.fps || newSource.fps == fromSource2.fps)
+		{
+			newSource.fps = toSource.fps;
+		}
+		if (newSource.bps < 0 || newSource.bps == fromSource1.bps || newSource.bps == fromSource2.bps)
+		{
+			newSource.bps = toSource.bps;
+		}
 	}
 
 	//******************************************************************************
 	// setViews
 	//******************************************************************************
-	private void setViews()
+	private void setViews(Source source)
 	{
 		// get the view
 		View view = getView();
@@ -194,7 +211,7 @@ public class SourceFragment extends Fragment
 	//******************************************************************************
 	// getSource
 	//******************************************************************************
-	public Source getSource()
+	private Source getSource()
 	{
 		// get the view and create a new source
 		View view = getView();
@@ -228,16 +245,41 @@ public class SourceFragment extends Fragment
 	}
 
 	//******************************************************************************
-	// checkCommon
+	// getAndCheckEditedSource
 	//******************************************************************************
-	private boolean checkCommon(Source editedSource)
+	public Source getAndCheckEditedSource()
 	{
-		// check the address, remove the port if necessary
-		if (!editedSource.address.isEmpty())
+		// get the updated source
+		Source editedSource = getSource();
+
+		// check the address
+		if (forCamera || editedSource.connectionType == Source.ConnectionType.RawMulticast)
 		{
+			// make sure there's an address
+			if (editedSource.address.isEmpty())
+			{
+				App.error(getActivity(), R.string.error_no_address);
+				return null;
+			}
+
 			try
 			{
+				// check the address
 				Uri uri = Uri.parse(editedSource.address);
+
+				// check IP addresses
+				String address = uri.getPath();
+				char c = address.charAt(0);
+				if (c >= '0' && c <= '9')
+				{
+					if (!checkIpAddress(address))
+					{
+						App.error(getActivity(), R.string.error_bad_address);
+						return null;
+					}
+				}
+
+				// use the port if it's there
 				int port = uri.getPort();
 				if (port != -1)
 				{
@@ -247,34 +289,47 @@ public class SourceFragment extends Fragment
 						editedSource.port = port;
 					}
 				}
+
+				// for HTTP, remove the scheme if it's there
+				if (editedSource.connectionType == Source.ConnectionType.RawHttp)
+				{
+					String scheme = uri.getScheme();
+					if (scheme != null && !scheme.isEmpty())
+					{
+						editedSource.address = editedSource.address.substring(scheme.length() + 3);
+					}
+				}
 			}
 			catch (Exception ex)
 			{
 				App.error(getActivity(), R.string.error_bad_address);
-				return false;
-			}
-		}
-
-		if (editedSource.connectionType == Source.ConnectionType.RawMulticast)
-		{
-			// make sure there's an address
-			if (editedSource.address.isEmpty())
-			{
-				App.error(getActivity(), R.string.error_no_address);
-				return false;
+				return null;
 			}
 
 			// make sure it's a valid multicast address
-			int check = checkMulticastAddress(editedSource.address);
-			if (check < 0)
+			if (editedSource.connectionType == Source.ConnectionType.RawMulticast)
 			{
-				App.error(getActivity(), R.string.error_bad_multicast_address);
-				return false;
+				int check = checkMulticastAddress(editedSource.address);
+				if (check < 0)
+				{
+					App.error(getActivity(), R.string.error_bad_multicast_address);
+					return null;
+				}
+				else if (check == 0)
+				{
+					Toast.makeText(getActivity(), R.string.warning_multicast_address,
+							Toast.LENGTH_LONG).show();
+				}
 			}
-			else if (check == 0)
+		}
+
+		// for settings, make sure there's a port
+		if (!forCamera)
+		{
+			if (editedSource.port == 0)
 			{
-				Toast.makeText(getActivity(), R.string.warning_multicast_address,
-								Toast.LENGTH_LONG).show();
+				App.error(getActivity(), R.string.error_no_port);
+				return null;
 			}
 		}
 
@@ -282,106 +337,39 @@ public class SourceFragment extends Fragment
 		if (editedSource.port != 0 && (editedSource.port < MIN_PORT || editedSource.port > MAX_PORT))
 		{
 			App.error(getActivity(), String.format(getString(R.string.error_bad_port), MIN_PORT, MAX_PORT));
-			return false;
+			return null;
 		}
 
 		// check the width
 		if (editedSource.width < 0)
 		{
 			App.error(getActivity(), R.string.error_bad_width);
-			return false;
+			return null;
 		}
 
 		// check the height
 		if (editedSource.height < 0)
 		{
 			App.error(getActivity(), R.string.error_bad_height);
-			return false;
+			return null;
 		}
 
 		// check the FPS
 		if (editedSource.fps < 0)
 		{
 			App.error(getActivity(), R.string.error_bad_fps);
-			return false;
+			return null;
 		}
 
 		// check the BPS
 		if (editedSource.bps < 0)
 		{
 			App.error(getActivity(), R.string.error_bad_bps);
-			return false;
+			return null;
 		}
 
-		// indicate success
-		return true;
-	}
-
-	//******************************************************************************
-	// checkForSettings
-	//******************************************************************************
-	public boolean checkForSettings(Source editedSource)
-	{
-		// check the common errors first
-		if (!checkCommon(editedSource))
-		{
-			return false;
-		}
-
-		// make sure there's a port
-		if (editedSource.port == 0)
-		{
-			App.error(getActivity(), R.string.error_no_port);
-			return false;
-		}
-
-		// indicate success
-		return true;
-	}
-
-	//******************************************************************************
-	// checkForCamera
-	//******************************************************************************
-	public boolean checkForCamera(Camera camera)
-	{
-		// check the common errors first
-		if (!checkCommon(camera.source))
-		{
-			return false;
-		}
-
-		// make sure the address is a valid URL
-		if (camera.source.connectionType == Source.ConnectionType.RawTcpIp &&
-			!Patterns.WEB_URL.matcher(camera.source.address).matches())
-		{
-			App.error(getActivity(), R.string.error_bad_address);
-			return false;
-		}
-
-		if (camera.source.connectionType == Source.ConnectionType.RawHttp)
-		{
-			// check the address
-			if (!camera.source.address.isEmpty())
-			{
-				try
-				{
-					Uri uri = Uri.parse(camera.source.address);
-					String scheme = uri.getScheme();
-					if (scheme != null && !scheme.isEmpty())
-					{
-						camera.source.address = camera.source.address.substring(scheme.length() + 3);
-					}
-				}
-				catch (Exception ex)
-				{
-					App.error(getActivity(), R.string.error_bad_address);
-					return false;
-				}
-			}
-		}
-
-		// indicate success
-		return true;
+		// return the successfully edited source
+		return editedSource;
 	}
 
 	//******************************************************************************
@@ -422,6 +410,34 @@ public class SourceFragment extends Fragment
 			}
 		}
 		return value;
+	}
+
+	//******************************************************************************
+	// checkIpAddress
+	//******************************************************************************
+	private boolean checkIpAddress(String address)
+	{
+		String octets[] = address.split("\\.");
+		boolean result = false;
+		if (octets.length == 4)
+		{
+			int octet1, octet2, octet3, octet4;
+			try
+			{
+				octet1 = getOctet(octets[0]);
+				octet2 = getOctet(octets[1]);
+				octet3 = getOctet(octets[2]);
+				octet4 = getOctet(octets[3]);
+				if (octet1 >= 0 && octet2 >= 0 && octet3 >= 0 && octet4 >= 0)
+				{
+					result = true;
+				}
+			}
+			catch (Exception ec)
+			{
+			}
+		}
+		return result;
 	}
 
 	//******************************************************************************
