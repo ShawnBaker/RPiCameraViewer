@@ -181,8 +181,9 @@ public class ScannerFragment extends DialogFragment
 		// instance variables
 		private WeakReference<ScannerFragment> fragmentWeakRef;
 		private String ipAddress, network;
-		private int tcpIpPort, httpPort, device, numDone;
+		private int device, numDone;
 		private List<Camera> cameras, newCameras;
+		private Settings settings;
 
 		//******************************************************************************
 		// DeviceScanner
@@ -201,9 +202,7 @@ public class ScannerFragment extends DialogFragment
 			// get our IP address and the default port
 			network = Utils.getNetworkName();
 			ipAddress = Utils.getLocalIpAddress();
-			Settings settings = Utils.getSettings();
-			tcpIpPort = settings.rawTcpIpSource.port;
-			httpPort = settings.rawHttpSource.port;
+			settings = Utils.getSettings();
 			device = 0;
 			numDone = 0;
 			cameras = Utils.getNetworkCameras(network);
@@ -240,10 +239,10 @@ public class ScannerFragment extends DialogFragment
 							try
 							{
 								// try to connect to the device
-								Socket socket = TcpIpReader.getConnection(address, tcpIpPort);
+								Socket socket = TcpIpReader.getConnection(address, settings.rawTcpIpSource.port);
 								if (socket != null)
 								{
-									Camera camera = new Camera(network, "", address);
+									Camera camera = new Camera(Source.ConnectionType.RawTcpIp, network, address, settings.rawTcpIpSource.port);
 									addCamera(camera);
 									socket.close();
 									found = true;
@@ -256,7 +255,7 @@ public class ScannerFragment extends DialogFragment
 							{
 								try
 								{
-									HttpURLConnection http = HttpReader.getConnection(address, httpPort, true);
+									HttpURLConnection http = HttpReader.getConnection(address, settings.rawHttpSource.port, true);
 									if (http != null)
 									{
 										InputStream stream = http.getInputStream();
@@ -266,7 +265,7 @@ public class ScannerFragment extends DialogFragment
 										if (page.contains("UV4L Streaming Server"))
 										{
 											address += "/stream/video.h264";
-											Camera camera = new Camera(network, "", address, httpPort, Source.ConnectionType.RawHttp);
+											Camera camera = new Camera(Source.ConnectionType.RawHttp, network, address, settings.rawHttpSource.port);
 											addCamera(camera);
 											http.disconnect();
 											found = true;
@@ -443,7 +442,8 @@ public class ScannerFragment extends DialogFragment
 				{
 					public void run()
 					{
-						message.setText(String.format(App.getStr(R.string.scanning_on_ports), tcpIpPort, httpPort));
+						message.setText(String.format(App.getStr(R.string.scanning_on_ports),
+										settings.rawTcpIpSource.port, settings.rawHttpSource.port));
 						progress.setProgress(numDone);
 						status.setText(String.format(App.getStr(R.string.num_new_cameras_found), newCameras.size()));
 						if (newCameras.size() > 0)
