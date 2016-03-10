@@ -81,22 +81,16 @@ public class Settings implements Parcelable
 		cameraName = App.getStr(R.string.camera);
 		showAllCameras = false;
 
-		rawTcpIpSource = new Source();
-		rawTcpIpSource.connectionType = Source.ConnectionType.RawTcpIp;
-		rawTcpIpSource.port = App.getInt(R.integer.default_tcpip_port);
+		rawTcpIpSource = new Source(Source.ConnectionType.RawTcpIp, "", App.getInt(R.integer.default_tcpip_port));
 		rawTcpIpSource.fps = App.getInt(R.integer.default_fps);
 		rawTcpIpSource.bps = App.getInt(R.integer.default_bps);
 
-		rawHttpSource = new Source();
-		rawHttpSource.connectionType = Source.ConnectionType.RawHttp;
-		rawHttpSource.port = App.getInt(R.integer.default_http_port);
+		rawHttpSource = new Source(Source.ConnectionType.RawHttp, "", App.getInt(R.integer.default_http_port));
 		rawHttpSource.fps = App.getInt(R.integer.default_fps);
 		rawHttpSource.bps = App.getInt(R.integer.default_bps);
 
-		rawMulticastSource = new Source();
-		rawMulticastSource.connectionType = Source.ConnectionType.RawMulticast;
-		rawMulticastSource.address = App.getStr(R.string.default_multicast_address);
-		rawMulticastSource.port = App.getInt(R.integer.default_multicast_port);
+		rawMulticastSource = new Source(Source.ConnectionType.RawMulticast, App.getStr(R.string.default_multicast_address),
+										App.getInt(R.integer.default_multicast_port));
 		rawMulticastSource.fps = App.getInt(R.integer.default_fps);
 		rawMulticastSource.bps = App.getInt(R.integer.default_bps);
 	}

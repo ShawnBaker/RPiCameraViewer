@@ -25,9 +25,12 @@ public class Source implements Comparable, Parcelable
 	//******************************************************************************
 	// Source
 	//******************************************************************************
-	public Source()
+	public Source(ConnectionType connectionType, String address, int port)
 	{
 		initialize();
+		this.connectionType = connectionType;
+		this.address = address;
+		this.port = port;
 		//Log.d(TAG, "init: " + toString());
 	}
 
@@ -96,10 +99,8 @@ public class Source implements Comparable, Parcelable
 	//******************************************************************************
 	public Source compound(Source source)
 	{
-		Source newSource = new Source();
-		newSource.connectionType = source.connectionType;
-		newSource.address = source.address.isEmpty() ? address : source.address;
-		newSource.port = (source.port != 0) ? source.port : port;
+		Source newSource = new Source(source.connectionType, source.address.isEmpty() ? address : source.address,
+										(source.port != 0) ? source.port : port);
 		newSource.width = (source.width != 0) ? source.width : width;
 		newSource.height = (source.height != 0) ? source.height : height;
 		newSource.fps = (source.fps != 0) ? source.fps : fps;

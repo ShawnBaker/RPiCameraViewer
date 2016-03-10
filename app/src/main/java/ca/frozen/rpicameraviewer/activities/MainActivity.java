@@ -90,8 +90,7 @@ public class MainActivity extends AppCompatActivity
 			@Override
 			public void onClick(View view)
 			{
-				Camera camera = new Camera();
-				camera.name = Utils.getNextCameraName(adapter.getCameras());
+				Camera camera = new Camera(Utils.getNextCameraName(adapter.getCameras()), Utils.getSettings().rawTcpIpSource);
 				startCameraActivity(camera);
 			}
 		});

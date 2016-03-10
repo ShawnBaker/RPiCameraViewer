@@ -21,36 +21,23 @@ public class Camera implements Comparable, Parcelable
 	//******************************************************************************
 	// Camera
 	//******************************************************************************
-    public Camera(String network, String name, Source source)
+    public Camera(Source.ConnectionType connectionType, String network, String address, int port)
     {
 		this.network = network;
-        this.name = name;
-        this.source = source;
-		//Log.d(TAG, "values/source: " + toString());
+        this.name = "";
+		this.source = new Source(connectionType, address, port);
+		//Log.d(TAG, "address/source: " + toString());
 	}
 
 	//******************************************************************************
 	// Camera
 	//******************************************************************************
-	public Camera(String network, String name, String address)
+	public Camera(String name, Source source)
 	{
-		this.network = network;
+		network = Utils.getNetworkName();
 		this.name = name;
-		source = new Source();
-		source.address = address;
-		//Log.d(TAG, "values/address: " + toString());
-	}
-
-	//******************************************************************************
-	// Camera
-	//******************************************************************************
-	public Camera(String network, String name, String address, int port,
-				  Source.ConnectionType connectionType)
-	{
-		this(network, name, address);
-		source.port = port;
-		source.connectionType = connectionType;
-		//Log.d(TAG, "values/connectionType: " + toString());
+		this.source = source;
+		//Log.d(TAG, "name/source: " + toString());
 	}
 
 	//******************************************************************************
@@ -72,15 +59,6 @@ public class Camera implements Comparable, Parcelable
 		readFromParcel(in);
 		//Log.d(TAG, "parcel: " + toString());
 	}
-
-	//******************************************************************************
-	// Camera
-	//******************************************************************************
-    public Camera()
-    {
-		initialize();
-		//Log.d(TAG, "init: " + toString());
-    }
 
 	//******************************************************************************
 	// Camera
@@ -107,7 +85,7 @@ public class Camera implements Comparable, Parcelable
 	{
 		network = Utils.getNetworkName();
 		name = Utils.getDefaultCameraName();
-		source = new Source();
+		source = new Source(Utils.getSettings().rawTcpIpSource);
 		source.address = Utils.getBaseIpAddress();
 	}
 
@@ -129,7 +107,7 @@ public class Camera implements Comparable, Parcelable
 	{
 		network = in.readString();
 		name = in.readString();
-		source = (Source) in.readParcelable(Source.class.getClassLoader());
+		source = in.readParcelable(Source.class.getClassLoader());
 	}
 
 	//******************************************************************************
