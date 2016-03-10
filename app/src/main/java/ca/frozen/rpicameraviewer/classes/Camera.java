@@ -36,7 +36,7 @@ public class Camera implements Comparable, Parcelable
 	{
 		network = Utils.getNetworkName();
 		this.name = name;
-		this.source = source;
+		this.source = new Source(source.connectionType, "", source.port);
 		//Log.d(TAG, "name/source: " + toString());
 	}
 
