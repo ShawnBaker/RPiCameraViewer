@@ -78,7 +78,7 @@
     <string name="raw_multicast">Multicast raw H.264</string>
     <string name="raw_tcp_ip">TCP/IP raw H.264</string>
     <string name="raw_http">HTTP raw H.264</string>
-    <string name="save">Save</string>
+    <string name="save">SAVE</string>
     <string name="scan">Scan</string>
     <string name="scanning_for_cameras"><b>Scanning for Cameras</b></string>
     <string name="scanning_on_ports" formatted="false">Scanning on ports %d and %d</string>
