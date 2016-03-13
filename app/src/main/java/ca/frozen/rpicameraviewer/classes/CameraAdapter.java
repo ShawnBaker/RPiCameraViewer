@@ -118,10 +118,10 @@ public class CameraAdapter extends BaseAdapter
 			TextView address = (TextView) convertView.findViewById(R.id.camera_address);
 
 			// set the views
-			Source source = camera.getSource();
+			Source source = camera.getCombinedSource();
 			name.setText(camera.name);
 			String fullAddress = Utils.getFullAddress(source.address, source.port);
-			if (camera.source.connectionType == Source.ConnectionType.RawHttp)
+			if (source.connectionType == Source.ConnectionType.RawHttp)
 			{
 				fullAddress = Utils.getHttpAddress(fullAddress);
 			}

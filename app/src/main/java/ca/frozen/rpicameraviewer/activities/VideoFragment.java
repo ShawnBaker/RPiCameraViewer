@@ -614,7 +614,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 				decoder = MediaCodec.createDecoderByType("video/avc");
 
 				// create the reader
-				source = camera.getSource();
+				source = camera.getCombinedSource();
 				if (source.connectionType == Source.ConnectionType.RawMulticast)
 				{
 					buffer = new byte[MULTICAST_BUFFER_SIZE];

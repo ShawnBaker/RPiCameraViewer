@@ -195,10 +195,10 @@ public class Camera implements Comparable, Parcelable
 	}
 
 	//******************************************************************************
-	// getSource
+	// getCombinedSource
 	//******************************************************************************
-	public Source getSource()
+	public Source getCombinedSource()
 	{
-		return Utils.getSettings().getSource(source.connectionType).compound(source);
+		return Utils.getSettings().getSource(source.connectionType).combine(source);
 	}
 }

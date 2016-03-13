@@ -95,9 +95,9 @@ public class Source implements Comparable, Parcelable
 	}
 
 	//******************************************************************************
-	// compound
+	// combine
 	//******************************************************************************
-	public Source compound(Source source)
+	public Source combine(Source source)
 	{
 		Source newSource = new Source(source.connectionType, source.address.isEmpty() ? address : source.address,
 										(source.port != 0) ? source.port : port);
