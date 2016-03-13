@@ -1,0 +1,13 @@
+#! /bin/sh
+
+# get the parameters
+if [ $# -ne 1 ]; then
+	echo usage: $(basename $0) port
+	exit 1
+fi
+PORT=$1
+
+while [ true ]; do
+	raspivid -n -ih -t 0 -rot 0 -w 1280 -h 720 -fps 15 -b 1000000 -o - | nc -lkv4 $PORT
+	sleep 1;
+done

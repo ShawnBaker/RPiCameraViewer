@@ -1,0 +1,1 @@
+curl http://192.168.0.182/stream/video.h264 | ./hello_video.bin 0 0 1920 1080
