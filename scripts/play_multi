@@ -1,1 +1,4 @@
+#! /bin/sh
+# Copyright © 2016 Shawn Baker using the MIT License.
+
 multicat -X @224.0.0.1:5001 /dev/null | ./hello_video.bin 0 0 1920 1080

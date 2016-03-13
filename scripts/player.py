@@ -1,3 +1,5 @@
+# Copyright © 2016 Shawn Baker using the MIT License.
+
 import termios, sys, os, subprocess
 from subprocess import Popen, PIPE
 TERMIOS = termios
