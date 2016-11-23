@@ -13,3 +13,4 @@ miscellaneous
 	post about it
 	create a view with multiple video fragments
 	test with higher (and lower) frame and bit rates
+	add localization for a few languages (French, German, ?)
