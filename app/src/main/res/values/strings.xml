@@ -53,6 +53,7 @@
     </string>
     <string name="http">HTTP</string>
     <string name="http_defaults">HTTP Defaults</string>
+    <string name="image_saved">Image saved.</string>
     <string name="initializing_video">Initializing video...</string>
     <string name="license">
         Copyright \u00a9 2016 Shawn Baker\n\n
