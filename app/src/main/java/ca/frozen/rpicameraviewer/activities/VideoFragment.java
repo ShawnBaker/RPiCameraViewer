@@ -1,10 +1,14 @@
 // Copyright © 2016 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.media.MediaActionSound;
 import android.media.MediaCodec;
@@ -12,8 +16,9 @@ import android.media.MediaFormat;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.util.Log;
+import android.support.v4.content.ContextCompat;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -26,6 +31,7 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
@@ -60,9 +66,10 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	private final static String TAG = "VideoFragment";
 	private final static float MIN_ZOOM = 0.1f;
 	private final static float MAX_ZOOM = 10;
-	private final static int FADEOUT_TIMEOUT = 5000;
+	private final static int FADEOUT_TIMEOUT = 8000;
 	private final static int FADEOUT_ANIMATION_TIME = 500;
 	private final static int FADEIN_ANIMATION_TIME = 400;
+	private final static int REQUEST_WRITE_EXTERNAL_STORAGE = 1;
 
 	// instance variables
 	private Camera camera;
@@ -73,11 +80,13 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	private Button snapshotButton;
 	private ScaleGestureDetector scaleDetector;
 	private GestureDetector simpleDetector;
+	private int fitWidth, fitHeight;
+	private float fitScaleX, fitScaleY;
 	private float scale = 1;
 	private float panX = 0;
 	private float panY = 0;
-	private Runnable fadeInRunner, fadeOutRunner, finishRunner;
-	private Handler fadeInHandler, fadeOutHandler, finishHandler;
+	private Runnable fadeInRunner, fadeOutRunner, finishRunner, startVideoRunner;
+	private Handler fadeInHandler, fadeOutHandler, finishHandler, startVideoHandler;
 	private OnFadeListener fadeListener;
 
 	//******************************************************************************
@@ -163,6 +172,17 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 				getActivity().finish();
 			}
 		};
+
+		// create the start video handler and runnable
+		startVideoHandler = new Handler();
+		startVideoRunner = new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				fitToView();
+			}
+		};
 	}
 
 	//******************************************************************************
@@ -203,12 +223,17 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 			@Override
 			public void onClick(View view)
 			{
-				Bitmap image = textureView.getBitmap();
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss");
-				String name = camera.network + "_" + camera.name.replaceAll("\\s+", "") + "_" + sdf.format(new Date()) + ".jpg";
-				String url = Utils.saveImage(getActivity().getContentResolver(), image, name, null);
-				MediaActionSound sound = new MediaActionSound();
-				sound.play(MediaActionSound.SHUTTER_CLICK);
+				int check = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
+				if (check != PackageManager.PERMISSION_GRANTED)
+				{
+					ActivityCompat.requestPermissions(getActivity(),
+							new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+							REQUEST_WRITE_EXTERNAL_STORAGE);
+				}
+				else
+				{
+					takeSnapshot();
+				}
 			}
 		});
 
@@ -223,6 +248,21 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		}
 
 		return view;
+	}
+
+	//******************************************************************************
+	// onRequestPermissionsResult
+	//******************************************************************************
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults)
+	{
+		if (requestCode == REQUEST_WRITE_EXTERNAL_STORAGE)
+		{
+			if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+			{
+				takeSnapshot();
+			}
+		}
 	}
 
 	//******************************************************************************
@@ -312,7 +352,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	{
 		if (decoder != null)
 		{
-			decoder.setSurface(new Surface(surfaceTexture));
+			decoder.setSurface(new Surface(surfaceTexture), startVideoHandler, startVideoRunner);
 		}
 	}
 
@@ -332,7 +372,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	{
 		if (decoder != null)
 		{
-			decoder.setSurface(null);
+			decoder.setSurface(null, null, null);
 		}
 		return true;
 	}
@@ -374,36 +414,133 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	}
 
 	//******************************************************************************
-	// adjustPan
+	// takeSnapshot
 	//******************************************************************************
-	private boolean adjustPan(float scale)
+	private void takeSnapshot()
 	{
-		boolean adjusted = false;
-		int w = textureView.getWidth();
-		int h = textureView.getHeight();
-		float dx = (w * scale - w) / 2;
-		float dy = (h * scale - h) / 2;
-		if (panX < -dx)
+		Bitmap image = textureView.getBitmap();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss");
+		String name = camera.network + "_" + camera.name.replaceAll("\\s+", "") + "_" + sdf.format(new Date()) + ".jpg";
+		String url = Utils.saveImage(getActivity().getContentResolver(), image, name, null);
+		MediaActionSound sound = new MediaActionSound();
+		sound.play(MediaActionSound.SHUTTER_CLICK);
+		Toast toast = Toast.makeText(getActivity(), App.getStr(R.string.image_saved), Toast.LENGTH_SHORT);
+		toast.show();
+	}
+
+	//******************************************************************************
+	// fitToView
+	//******************************************************************************
+	private void fitToView()
+	{
+		// get the aspect ratio
+		MediaFormat format = decoder.getMediaFormat();
+		int videoWidth = format.getInteger(MediaFormat.KEY_WIDTH);
+		int videoHeight = format.getInteger(MediaFormat.KEY_HEIGHT);
+		int viewWidth = textureView.getWidth();
+		int viewHeight = textureView.getHeight();
+		double aspectRatio = (double)videoHeight / videoWidth;
+
+		// get the fitted size, position and scale
+		if (viewHeight > (int)(viewWidth * aspectRatio))
 		{
-			panX = -dx;
-			adjusted = true;
+			fitWidth = viewWidth;
+			fitHeight = (int)(viewWidth * aspectRatio);
 		}
-		if (panX > dx)
+		else
 		{
-			panX = dx;
-			adjusted = true;
+			fitWidth = (int)(viewHeight / aspectRatio);
+			fitHeight = viewHeight;
 		}
-		if (panY < -dy)
+		fitScaleX = (float)fitWidth / viewWidth;
+		fitScaleY = (float)fitHeight / viewHeight;
+
+		scale = 1;
+		panX = panY = 0;
+		setTransform();
+	}
+
+	//******************************************************************************
+	// checkPan
+	//******************************************************************************
+	private void checkPan()
+	{
+		Point maxPan = getMaxPan();
+		if (maxPan.x == 0) panX = 0;
+		else if (panX < -maxPan.x) panX = -maxPan.x;
+		else if (panX > maxPan.x) panX = maxPan.x;
+		if (maxPan.y == 0) panY = 0;
+		else if (panY < -maxPan.y) panY = -maxPan.y;
+		else if (panY > maxPan.y) panY = maxPan.y;
+	}
+
+	//******************************************************************************
+	// getMaxPan
+	//******************************************************************************
+	private Point getMaxPan()
+	{
+		int viewWidth = textureView.getWidth();
+		int viewHeight = textureView.getHeight();
+		return new Point((int)Math.max(Math.round((fitWidth * scale - viewWidth) / 2), 0), (int)Math.max(Math.round((fitHeight * scale - viewHeight) / 2), 0));
+	}
+
+	//******************************************************************************
+	// isValidPan
+	//******************************************************************************
+	private boolean isValidPan()
+	{
+		Point maxPan = getMaxPan();
+		boolean validPan = true;
+		if ((maxPan.x == 0) || (panX < -maxPan.x) || (panX > maxPan.x))
 		{
-			panY = -dy;
-			adjusted = true;
+			validPan = false;
 		}
-		if (panY > dy)
+		else if ((maxPan.y == 0) || (panY < -maxPan.y) || (panY > maxPan.y))
 		{
-			panY = dy;
-			adjusted = true;
+			validPan = false;
 		}
-		return adjusted;
+		return validPan;
+	}
+
+	//******************************************************************************
+	// setScale
+	//******************************************************************************
+	private void setScale(float newScale)
+	{
+		float oldScale = scale;
+		scale = newScale;
+		if (!isValidPan())
+		{
+			float ratio = scale / oldScale;
+			panX = (int)(panX * ratio);
+			panY = (int)(panY * ratio);
+			checkPan();
+		}
+		setTransform();
+	}
+
+	//******************************************************************************
+	// setTransform
+	//******************************************************************************
+	private void setTransform()
+	{
+		// get the view size
+		int viewWidth = textureView.getWidth();
+		int viewHeight = textureView.getHeight();
+
+		// scale relative to the center
+		Matrix transform = new Matrix();
+		transform.preTranslate(viewWidth / 2, viewHeight / 2);
+		transform.preScale(fitScaleX * scale, fitScaleY * scale);
+		transform.preTranslate(-viewWidth / 2, -viewHeight / 2);
+
+		// add the panning
+		if (panX != 0 || panY != 0)
+		{
+			transform.postTranslate(panX, panY);
+		}
+
+		textureView.setTransform(transform);
 	}
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -426,9 +563,8 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 			{
 				panX -= distanceX;
 				panY -= distanceY;
-				adjustPan(scale);
-				textureView.setTranslationX(panX);
-				textureView.setTranslationY(panY);
+				checkPan();
+				setTransform();
 				return true;
 			}
 			return false;
@@ -439,11 +575,8 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		{
 			startFadeOutTimer(false);
 			scale = 1;
-			textureView.setScaleX(scale);
-			textureView.setScaleY(scale);
 			panX = panY = 0;
-			textureView.setTranslationX(panX);
-			textureView.setTranslationY(panY);
+			setTransform();
 			return true;
 		}
 	}
@@ -460,22 +593,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		{
 			float newScale = startScale * detector.getScaleFactor();
 			newScale = Math.max(MIN_ZOOM, Math.min(newScale, MAX_ZOOM));
-			textureView.setScaleX(newScale);
-			textureView.setScaleY(newScale);
-			if (newScale > 1)
-			{
-				if (adjustPan(newScale))
-				{
-					textureView.setTranslationX(panX);
-					textureView.setTranslationY(panY);
-				}
-			}
-			else if (panX != 0 || panY != 0)
-			{
-				panX = panY = 0;
-				textureView.setTranslationX(panX);
-				textureView.setTranslationY(panY);
-			}
+			setScale(newScale);
 			return false;
 		}
 
@@ -491,7 +609,8 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		public void onScaleEnd(ScaleGestureDetector detector)
 		{
 			float newScale = startScale * detector.getScaleFactor();
-			scale = Math.max(0.1f, Math.min(newScale, 10));
+			newScale = Math.max(MIN_ZOOM, Math.min(newScale, MAX_ZOOM));
+			setScale(newScale);
 			startFadeOutTimer(false);
 		}
 	}
@@ -520,13 +639,17 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		private byte[] buffer = null;
 		private RawH264Reader reader = null;
 		private WifiManager.MulticastLock multicastLock = null;
+		private Handler startVideoHandler;
+		private Runnable startVideoRunner;
 
 		//******************************************************************************
 		// setSurface
 		//******************************************************************************
-		public void setSurface(Surface surface)
+		public void setSurface(Surface surface, Handler handler, Runnable runner)
 		{
 			this.surface = surface;
+			this.startVideoHandler = handler;
+			this.startVideoRunner = runner;
 			if (decoder != null)
 			{
 				if (surface != null)
@@ -558,6 +681,14 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 					setDecodingState(false);
 				}
 			}
+		}
+
+		//******************************************************************************
+		// getMediaFormat
+		//******************************************************************************
+		public MediaFormat getMediaFormat()
+		{
+			return format;
 		}
 
 		//******************************************************************************
@@ -681,6 +812,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 												setDecodingState(true);
 												inputBuffers = decoder.getInputBuffers();
 												hideMessage();
+												startVideoHandler.post(startVideoRunner);
 												gotSPS = true;
 											}
 											if (gotSPS && decoding)
