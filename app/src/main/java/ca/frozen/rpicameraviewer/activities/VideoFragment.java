@@ -8,7 +8,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
-import android.graphics.Point;
+import android.graphics.PointF;
 import android.graphics.SurfaceTexture;
 import android.media.MediaActionSound;
 import android.media.MediaCodec;
@@ -19,6 +19,7 @@ import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -81,10 +82,9 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	private ScaleGestureDetector scaleDetector;
 	private GestureDetector simpleDetector;
 	private int fitWidth, fitHeight;
-	private float fitScaleX, fitScaleY;
+	private PointF fitScale = new PointF(1, 1);
+	private PointF pan = new PointF(0, 0);
 	private float scale = 1;
-	private float panX = 0;
-	private float panY = 0;
 	private Runnable fadeInRunner, fadeOutRunner, finishRunner, startVideoRunner;
 	private Handler fadeInHandler, fadeOutHandler, finishHandler, startVideoHandler;
 	private OnFadeListener fadeListener;
@@ -421,7 +421,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		Bitmap image = textureView.getBitmap();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss");
 		String name = camera.network + "_" + camera.name.replaceAll("\\s+", "") + "_" + sdf.format(new Date()) + ".jpg";
-		String url = Utils.saveImage(getActivity().getContentResolver(), image, name, null);
+		Utils.saveImage(getActivity().getContentResolver(), image, name, null);
 		MediaActionSound sound = new MediaActionSound();
 		sound.play(MediaActionSound.SHUTTER_CLICK);
 		Toast toast = Toast.makeText(getActivity(), App.getStr(R.string.image_saved), Toast.LENGTH_SHORT);
@@ -437,11 +437,13 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		MediaFormat format = decoder.getMediaFormat();
 		int videoWidth = format.getInteger(MediaFormat.KEY_WIDTH);
 		int videoHeight = format.getInteger(MediaFormat.KEY_HEIGHT);
+		float aspectRatio = (float)videoHeight / videoWidth;
+
+		// get the view size
 		int viewWidth = textureView.getWidth();
 		int viewHeight = textureView.getHeight();
-		double aspectRatio = (double)videoHeight / videoWidth;
 
-		// get the fitted size, position and scale
+		// get the fitted size
 		if (viewHeight > (int)(viewWidth * aspectRatio))
 		{
 			fitWidth = viewWidth;
@@ -452,12 +454,13 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 			fitWidth = (int)(viewHeight / aspectRatio);
 			fitHeight = viewHeight;
 		}
-		fitScaleX = (float)fitWidth / viewWidth;
-		fitScaleY = (float)fitHeight / viewHeight;
 
-		scale = 1;
-		panX = panY = 0;
-		setTransform();
+		// get the fitted scale
+		fitScale.x = (float)fitWidth / viewWidth;
+		fitScale.y = (float)fitHeight / viewHeight;
+
+		// clear the transform
+		resetTransform();
 	}
 
 	//******************************************************************************
@@ -465,41 +468,26 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	//******************************************************************************
 	private void checkPan()
 	{
-		Point maxPan = getMaxPan();
-		if (maxPan.x == 0) panX = 0;
-		else if (panX < -maxPan.x) panX = -maxPan.x;
-		else if (panX > maxPan.x) panX = maxPan.x;
-		if (maxPan.y == 0) panY = 0;
-		else if (panY < -maxPan.y) panY = -maxPan.y;
-		else if (panY > maxPan.y) panY = maxPan.y;
+		PointF maxPan = getMaxPan();
+
+		if (maxPan.x == 0) pan.x = 0;
+		else if (pan.x < -maxPan.x) pan.x = -maxPan.x;
+		else if (pan.x > maxPan.x) pan.x = maxPan.x;
+
+		if (maxPan.y == 0) pan.y = 0;
+		else if (pan.y < -maxPan.y) pan.y = -maxPan.y;
+		else if (pan.y > maxPan.y) pan.y = maxPan.y;
 	}
 
 	//******************************************************************************
 	// getMaxPan
 	//******************************************************************************
-	private Point getMaxPan()
+	private PointF getMaxPan()
 	{
 		int viewWidth = textureView.getWidth();
 		int viewHeight = textureView.getHeight();
-		return new Point((int)Math.max(Math.round((fitWidth * scale - viewWidth) / 2), 0), (int)Math.max(Math.round((fitHeight * scale - viewHeight) / 2), 0));
-	}
-
-	//******************************************************************************
-	// isValidPan
-	//******************************************************************************
-	private boolean isValidPan()
-	{
-		Point maxPan = getMaxPan();
-		boolean validPan = true;
-		if ((maxPan.x == 0) || (panX < -maxPan.x) || (panX > maxPan.x))
-		{
-			validPan = false;
-		}
-		else if ((maxPan.y == 0) || (panY < -maxPan.y) || (panY > maxPan.y))
-		{
-			validPan = false;
-		}
-		return validPan;
+		return new PointF(Math.max(Math.round((fitWidth * scale - viewWidth) / 2), 0),
+						  Math.max(Math.round((fitHeight * scale - viewHeight) / 2), 0));
 	}
 
 	//******************************************************************************
@@ -507,15 +495,18 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	//******************************************************************************
 	private void setScale(float newScale)
 	{
-		float oldScale = scale;
 		scale = newScale;
-		if (!isValidPan())
-		{
-			float ratio = scale / oldScale;
-			panX = (int)(panX * ratio);
-			panY = (int)(panY * ratio);
-			checkPan();
-		}
+		checkPan();
+		setTransform();
+	}
+
+	//******************************************************************************
+	// resetTransform
+	//******************************************************************************
+	private void resetTransform()
+	{
+		scale = 1;
+		pan.x = pan.y = 0;
 		setTransform();
 	}
 
@@ -530,17 +521,17 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 
 		// scale relative to the center
 		Matrix transform = new Matrix();
-		transform.preTranslate(viewWidth / 2, viewHeight / 2);
-		transform.preScale(fitScaleX * scale, fitScaleY * scale);
-		transform.preTranslate(-viewWidth / 2, -viewHeight / 2);
+		transform.postScale(fitScale.x * scale, fitScale.y * scale, viewWidth / 2, viewHeight / 2);
 
 		// add the panning
-		if (panX != 0 || panY != 0)
+		if (pan.x != 0 || pan.y != 0)
 		{
-			transform.postTranslate(panX, panY);
+			transform.postTranslate(pan.x, pan.y);
 		}
 
+		// set the transform
 		textureView.setTransform(transform);
+		textureView.invalidate();
 	}
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -559,10 +550,10 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY)
 		{
 			startFadeOutTimer(false);
-			if (scale > 1)
+			if (e2.getPointerCount() == 1 && scale > 1)
 			{
-				panX -= distanceX;
-				panY -= distanceY;
+				pan.x -= distanceX;
+				pan.y -= distanceY;
 				checkPan();
 				setTransform();
 				return true;
@@ -574,9 +565,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		public boolean onDoubleTap(MotionEvent e)
 		{
 			startFadeOutTimer(false);
-			scale = 1;
-			panX = panY = 0;
-			setTransform();
+			resetTransform();
 			return true;
 		}
 	}
@@ -586,14 +575,22 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	////////////////////////////////////////////////////////////////////////////////
 	private class ScaleListener implements ScaleGestureDetector.OnScaleGestureListener
 	{
-		float startScale = 1;
+		private float startScale = 1;
+		private PointF center = new PointF();
 
 		@Override
 		public boolean onScale(ScaleGestureDetector detector)
 		{
 			float newScale = startScale * detector.getScaleFactor();
 			newScale = Math.max(MIN_ZOOM, Math.min(newScale, MAX_ZOOM));
-			setScale(newScale);
+			if (newScale != scale)
+			{
+				PointF offset = new PointF(detector.getFocusX() - center.x, detector.getFocusY() - center.y);
+				PointF focus = new PointF((offset.x - pan.x) / scale, (offset.y - pan.y) / scale);
+				pan.x = offset.x - focus.x * newScale;
+				pan.y = offset.y - focus.y * newScale;
+				setScale(newScale);
+			}
 			return false;
 		}
 
@@ -602,15 +599,14 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		{
 			stopFadeOutTimer();
 			startScale = scale;
+			center.x = textureView.getWidth() / 2;
+			center.y = textureView.getHeight() / 2;
 			return true;
 		}
 
 		@Override
 		public void onScaleEnd(ScaleGestureDetector detector)
 		{
-			float newScale = startScale * detector.getScaleFactor();
-			newScale = Math.max(MIN_ZOOM, Math.min(newScale, MAX_ZOOM));
-			setScale(newScale);
 			startFadeOutTimer(false);
 		}
 	}
