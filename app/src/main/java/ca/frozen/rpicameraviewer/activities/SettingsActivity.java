@@ -51,7 +51,7 @@ public class SettingsActivity extends AppCompatActivity
 		// set the views
 		cameraName = (EditText) findViewById(R.id.settings_camera_name);
 		String name = cameraName.getText().toString();
-		Log.d(TAG, name);
+		//Log.d(TAG, name);
 		cameraName.setText(settings.cameraName);
 
 		showCameras = (Spinner) findViewById(R.id.settings_show_cameras);

@@ -34,7 +34,7 @@ public class VideoActivity extends AppCompatActivity implements VideoFragment.On
 		// configure the activity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_video);
-		Log.d(TAG, "onCreate");
+		//Log.d(TAG, "onCreate");
 
 		// load the settings and cameras
 		Utils.loadData();
