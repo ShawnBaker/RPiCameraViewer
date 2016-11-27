@@ -1,2 +1,2 @@
 configurations.maybeCreate("default")
-artifacts.add("default", file('ca.frozen.library.aar'))
+artifacts.add("default", file('library-release.aar'))
