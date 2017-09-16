@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright © 2016 Shawn Baker using the MIT License. -->
+<!-- Copyright © 2016-2017 Shawn Baker using the MIT License. -->
 <resources>
     <string name="about">About</string>
     <string name="address">Address</string>
@@ -9,6 +9,7 @@
     <string name="camera">Camera</string>
     <string name="camera_name">Camera Name</string>
     <string name="cancel">Cancel</string>
+    <string name="clear">Clear</string>
     <string name="color">Color</string>
     <string name="connection_defaults">Connection\nDefaults</string>
     <string name="connection_type">Connection Type</string>
@@ -26,6 +27,9 @@
     <string name="done">Done</string>
     <string name="dont_set">don\'t set</string>
     <string name="edit">Edit</string>
+    <string name="email">Email</string>
+    <string name="email_address">support@frozen.ca</string>
+    <string name="email_log_files">Email Log Files</string>
     <string name="error_bad_address">The address is not a valid URL.</string>
     <string name="error_bad_bps">The bits per second must be a positive number or empty.</string>
     <string name="error_bad_fps">The frames per second must be a positive number or empty.</string>
@@ -41,6 +45,9 @@
     <string name="error_no_network">There is no local network.</string>
     <string name="error_no_address">You must enter an address.</string>
     <string name="error_no_port">You must enter a port number.</string>
+    <string name="file_1">File 1</string>
+    <string name="file_2">File 2</string>
+    <string name="file_provider">ca.frozen.rpicameraviewer.fileprovider</string>
     <string name="frames_per_second">Frames per second</string>
     <string name="general">General</string>
     <string name="height">Height</string>
@@ -56,22 +63,26 @@
     <string name="image_saved">Image saved.</string>
     <string name="initializing_video">Initializing video...</string>
     <string name="license">
-        Copyright \u00a9 2016 Shawn Baker\n\n
+        Copyright \u00a9 2016-2017 Shawn Baker\n\n
         Raspberry image by <a href="http://www.how-to-draw-funny-cartoons.com">Martin Bérubé</a>\n
         Camera image by <a href="http://www.oxygen-icons.org">Oxygen Team</a>\n\n
         This is an open source program.\n
         It\'s available on <a href="https://github.com/ShawnBaker/RPiCameraViewer">github</a>
         under the <a href="https://opensource.org/licenses/MIT">MIT License</a>
 	</string>
+    <string name="log_files">Log Files</string>
     <string name="multicast">Multicast</string>
     <string name="multicast_defaults">Multicast Defaults</string>
     <string name="name">Name</string>
     <string name="network">Network</string>
     <string name="no">No</string>
     <string name="no_cameras">There are no cameras.</string>
+    <string name="no_file_1">Log file 1 doesn\'t exist.</string>
+    <string name="no_file_2">Log file 2 doesn\'t exist.</string>
     <string name="no_network">no network</string>
     <string name="num_new_cameras_found" formatted="false">Number of new cameras found: %d</string>
     <string name="ok">OK</string>
+    <string name="ok_to_clear_logs">Are you sure you want to delete the contents of the log files?</string>
     <string name="ok_to_delete_all_cameras">Are you sure you want to delete all the cameras?</string>
     <string name="ok_to_delete_camera">Are you sure you want to delete this camera?</string>
     <string name="position">Position</string>

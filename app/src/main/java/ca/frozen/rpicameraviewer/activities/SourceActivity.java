@@ -1,14 +1,14 @@
-// Copyright © 2016 Shawn Baker using the MIT License.
+// Copyright © 2016-2017 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import ca.frozen.library.classes.Log;
 import ca.frozen.rpicameraviewer.R;
 import ca.frozen.rpicameraviewer.classes.Source;
 import ca.frozen.rpicameraviewer.classes.Utils;
@@ -17,9 +17,6 @@ public class SourceActivity extends AppCompatActivity
 {
 	// public constants
 	public final static String SOURCE = "source";
-
-	// local constants
-	private final static String TAG = "SourceActivity";
 
 	// instance variables
 	private Source source;
@@ -34,6 +31,9 @@ public class SourceActivity extends AppCompatActivity
 		// configure the activity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_source);
+
+		// initialize the logger
+		Utils.initLogFile(getClass().getSimpleName());
 
 		// load the settings and cameras
 		Utils.loadData();
@@ -86,6 +86,7 @@ public class SourceActivity extends AppCompatActivity
 			Source editedSource = sourceFragment.getAndCheckEditedSource();
 			if (editedSource != null)
 			{
+				Log.info("menu: save " + editedSource.toString());
 				Intent intent = new Intent();
 				intent.putExtra(SOURCE, editedSource);
 				setResult(RESULT_OK, intent);

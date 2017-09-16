@@ -1,4 +1,4 @@
-// Copyright © 2016 Shawn Baker using the MIT License.
+// Copyright © 2016-2017 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
 import android.app.Dialog;
@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +26,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import ca.frozen.library.classes.Log;
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.classes.Camera;
 import ca.frozen.rpicameraviewer.classes.HttpReader;
@@ -38,9 +38,6 @@ import ca.frozen.rpicameraviewer.R;
 
 public class ScannerFragment extends DialogFragment
 {
-	// local constants
-	private final static String TAG = "ScannerFragment";
-
 	// instance variables
 	private WeakReference<DeviceScanner> scannerWeakRef;
 	private TextView message, status;
@@ -57,6 +54,9 @@ public class ScannerFragment extends DialogFragment
 	{
 		super.onCreate(savedInstanceState);
 		setRetainInstance(true);
+
+		// initialize the logger
+		Utils.initLogFile(getClass().getSimpleName());
 
 		// load the settings and cameras
 		Utils.loadData();
@@ -159,6 +159,7 @@ public class ScannerFragment extends DialogFragment
 	//******************************************************************************
 	private void cancel()
 	{
+		Log.info("cancel");
 		DeviceScanner scanner = (scannerWeakRef != null) ? scannerWeakRef.get() : null;
 		if (scanner != null)
 		{
@@ -172,7 +173,6 @@ public class ScannerFragment extends DialogFragment
 	private class DeviceScanner extends AsyncTask<Void, Void, Void>
 	{
 		// local constants
-		private final static String TAG = "DeviceScanner";
 		private final static int NO_DEVICE = -1;
 		private final static int NUM_THREADS = 42;
 		private final static int SLEEP_TIMEOUT = 10;
@@ -207,6 +207,7 @@ public class ScannerFragment extends DialogFragment
 			numDone = 0;
 			cameras = Utils.getNetworkCameras(network);
 			newCameras = new ArrayList<>();
+			Log.info("onPreExecute: " + network + "," + ipAddress + "," + settings.toString());
 		}
 
 		//******************************************************************************
@@ -215,6 +216,7 @@ public class ScannerFragment extends DialogFragment
 		@Override
 		protected Void doInBackground(Void... params)
 		{
+			Log.info("onPreExecute");
 			if (ipAddress != null && !ipAddress.isEmpty())
 			{
 				int i = ipAddress.lastIndexOf('.');
@@ -308,6 +310,7 @@ public class ScannerFragment extends DialogFragment
 		@Override
 		protected void onPostExecute(Void unused)
 		{
+			Log.info("onPostExecute");
 			final MainActivity activity = getActivity(cancelButton);
 			if (activity != null)
 			{
@@ -332,6 +335,7 @@ public class ScannerFragment extends DialogFragment
 		private void addCameras()
 		{
 			// sort the new cameras by IP address
+			Log.info("addCameras");
 			Collections.sort(newCameras, new Comparator<Camera>()
 			{
 				@Override
@@ -353,6 +357,7 @@ public class ScannerFragment extends DialogFragment
 			{
 				camera.name = defaultName + ++max;
 				allCameras.add(camera);
+				Log.info("camera: " + camera.toString());
 			}
 		}
 
@@ -404,6 +409,7 @@ public class ScannerFragment extends DialogFragment
 			}
 			if (!found)
 			{
+				Log.info("addCamera: " + newCamera.source.toString());
 				newCameras.add(newCamera);
 			}
 		}

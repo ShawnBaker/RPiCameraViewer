@@ -1,4 +1,4 @@
-// Copyright © 2016 Shawn Baker using the MIT License.
+// Copyright © 2016-2017 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.classes;
 
 import android.content.ContentResolver;
@@ -15,7 +15,6 @@ import android.net.wifi.WifiManager;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,6 +33,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 
+import ca.frozen.library.classes.Log;
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.R;
 
@@ -53,6 +53,7 @@ public class Utils
 		// load the settings
 		if (settings == null)
 		{
+			Log.info("load settings");
 			if (preferences == null)
 			{
 				preferences = PreferenceManager.getDefaultSharedPreferences(App.getContext());
@@ -79,6 +80,7 @@ public class Utils
 		// load the cameras
 		if (cameras == null)
 		{
+			Log.info("load cameras");
 			if (preferences == null)
 			{
 				preferences = PreferenceManager.getDefaultSharedPreferences(App.getContext());
@@ -117,6 +119,7 @@ public class Utils
 	//******************************************************************************
 	public static void reloadData()
 	{
+		Log.info("reloadData");
 		settings = null;
 		cameras = null;
 		loadData();
@@ -131,6 +134,7 @@ public class Utils
 		SharedPreferences.Editor editor = null;
 
 		// save the settings
+		Log.info("saveData");
 		if (settings != null)
 		{
 			if (preferences == null)
@@ -459,5 +463,15 @@ public class Utils
 		String name = orientation == Configuration.ORIENTATION_PORTRAIT ? "navigation_bar_height" : "navigation_bar_height_landscape";
 		int id = resources.getIdentifier(name, "dimen", "android");
 		return (id > 0) ?resources.getDimensionPixelSize(id) : 0;
+	}
+
+	//******************************************************************************
+	// initLogFile
+	//******************************************************************************
+	public static void initLogFile(String tag)
+	{
+		String baseFileName = App.getStr(R.string.app_name).replaceAll("\\s+", "");
+		Log.init(App.getContext(), tag, baseFileName);
+		Log.info("onCreate");
 	}
 }

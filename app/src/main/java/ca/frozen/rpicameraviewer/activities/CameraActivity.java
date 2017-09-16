@@ -1,4 +1,4 @@
-// Copyright © 2016 Shawn Baker using the MIT License.
+// Copyright © 2016-2017 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
 import android.support.v7.app.AppCompatActivity;
@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import ca.frozen.library.classes.Log;
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.classes.Camera;
 import ca.frozen.rpicameraviewer.classes.Utils;
@@ -19,9 +20,6 @@ public class CameraActivity extends AppCompatActivity
 {
 	// public constants
 	public final static String CAMERA = "camera";
-
-	// local constants
-	private final static String TAG = "CameraActivity";
 
 	// instance variables
 	private Camera camera;
@@ -38,19 +36,23 @@ public class CameraActivity extends AppCompatActivity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_camera);
 
+		// initialize the logger
+		Utils.initLogFile(getClass().getSimpleName());
+
 		// load the settings and cameras
 		Utils.loadData();
 
 		// get the camera object
 		Bundle data = getIntent().getExtras();
 		camera = data.getParcelable(CAMERA);
+		Log.info("camera: " + (camera.name.isEmpty() ? "new" : camera.name));
 
 		// set the name
 		nameEdit = (EditText) findViewById(R.id.camera_name);
 		nameEdit.setText(camera.name);
 
 		// set the network
-		TextView network = (TextView) findViewById(R.id.camera_network);
+		TextView network = (TextView)findViewById(R.id.camera_network);
 		network.setText(camera.network);
 
 		// set the source fragment
@@ -88,6 +90,7 @@ public class CameraActivity extends AppCompatActivity
 					cameras.remove(camera);
 				}
 				cameras.add(editedCamera);
+				Log.info("menu: save " + editedCamera.toString());
 				Utils.saveData();
 				finish();
 			}

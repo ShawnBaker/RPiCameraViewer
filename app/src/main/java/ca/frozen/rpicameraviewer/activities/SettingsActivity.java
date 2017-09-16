@@ -1,10 +1,9 @@
-// Copyright © 2016 Shawn Baker using the MIT License.
+// Copyright © 2016-2017 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -12,6 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 
+import ca.frozen.library.classes.Log;
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.classes.Settings;
 import ca.frozen.rpicameraviewer.classes.Source;
@@ -25,7 +25,6 @@ public class SettingsActivity extends AppCompatActivity
 	public final static int ALL_CAMERAS = 1;
 
 	// local constants
-	private final static String TAG = "SettingsActivity";
 	private final static int EDIT_SOURCE = 1;
 
 	// instance variables
@@ -43,6 +42,9 @@ public class SettingsActivity extends AppCompatActivity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_settings);
 
+		// initialize the logger
+		Utils.initLogFile(getClass().getSimpleName());
+
 		// get the settings
 		settings = (savedInstanceState == null)
 						? new Settings(Utils.getSettings())
@@ -50,8 +52,6 @@ public class SettingsActivity extends AppCompatActivity
 
 		// set the views
 		cameraName = (EditText) findViewById(R.id.settings_camera_name);
-		String name = cameraName.getText().toString();
-		//Log.d(TAG, name);
 		cameraName.setText(settings.cameraName);
 
 		showCameras = (Spinner) findViewById(R.id.settings_show_cameras);
@@ -150,6 +150,7 @@ public class SettingsActivity extends AppCompatActivity
 		{
 			if (getAndCheckSettings())
 			{
+				Log.info("menu: save " + settings.toString());
 				Utils.setSettings(settings);
 				Utils.saveData();
 				finish();
@@ -185,6 +186,7 @@ public class SettingsActivity extends AppCompatActivity
 	//******************************************************************************
 	private void startSourceActivity(Source source)
 	{
+		Log.info("startSourceActivity: " + source.toString());
 		Intent intent = new Intent(App.getContext(), SourceActivity.class);
 		intent.putExtra(SourceActivity.SOURCE, source);
 		startActivityForResult(intent, EDIT_SOURCE);

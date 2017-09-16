@@ -1,6 +1,7 @@
-// Copyright © 2016 Shawn Baker using the MIT License.
+// Copyright © 2016-2017 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.content.BroadcastReceiver;
@@ -8,13 +9,15 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.MenuInflater;
 import android.view.View;
@@ -26,17 +29,16 @@ import android.widget.ListView;
 import java.util.Collections;
 import java.util.List;
 
-import ca.frozen.rpicameraviewer.App;
+import ca.frozen.library.classes.Log;
 import ca.frozen.rpicameraviewer.classes.Camera;
 import ca.frozen.rpicameraviewer.classes.CameraAdapter;
 import ca.frozen.rpicameraviewer.classes.Utils;
 import ca.frozen.rpicameraviewer.R;
 
+import static ca.frozen.rpicameraviewer.App.getContext;
+
 public class MainActivity extends AppCompatActivity
 {
-	// local constants
-	private final static String TAG = "MainActivity";
-
 	// instance variables
 	private CameraAdapter adapter;
 	private ScannerFragment scannerFragment;
@@ -53,6 +55,19 @@ public class MainActivity extends AppCompatActivity
 		// set the view
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+
+		// initialize the logger
+		Utils.initLogFile(getClass().getSimpleName());
+
+		// check for external storage permission
+		int check = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+		if (check != PackageManager.PERMISSION_GRANTED)
+		{
+			Log.info("ask for external storage permission");
+			ActivityCompat.requestPermissions(this,
+					new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+					1);
+		}
 
 		// create the toolbar
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -98,6 +113,7 @@ public class MainActivity extends AppCompatActivity
 		// do a scan if there are no cameras
 		if (savedInstanceState == null && adapter.getCameras().size() == 0 && Utils.connectedToNetwork())
 		{
+			Log.info("starting auto scan");
 			Handler handler = new Handler();
 			handler.postDelayed(new Runnable()
 			{
@@ -210,6 +226,7 @@ public class MainActivity extends AppCompatActivity
 					item.setTitle(name);
 				}
 			}
+			Log.info("setNetworkName: " + item.getTitle().toString());
 		}
 	}
 
@@ -225,12 +242,14 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.action_network)
         {
 			// nothing to do right now
+			Log.info("menu: network");
             return true;
         }
 
 		// scan for cameras
 		else if (id == R.id.action_scan)
 		{
+			Log.info("menu: scan");
 			startScanner();
 			return true;
 		}
@@ -238,6 +257,7 @@ public class MainActivity extends AppCompatActivity
 		// delete all the cameras
 		else if (id == R.id.action_delete_all)
 		{
+			Log.info("menu: delete all");
 			AlertDialog.Builder alert = new AlertDialog.Builder(this);
 			alert.setMessage(R.string.ok_to_delete_all_cameras);
 			alert.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener()
@@ -247,10 +267,12 @@ public class MainActivity extends AppCompatActivity
 				{
 					if (Utils.getSettings().showAllCameras)
 					{
+						Log.info("menu: deleting all cameras");
 						Utils.getCameras().clear();
 					}
 					else
 					{
+						Log.info("menu: deleting network cameras");
 						List<Camera> allCameras = Utils.getCameras();
 						for (Camera camera : adapter.getCameras())
 						{
@@ -276,6 +298,7 @@ public class MainActivity extends AppCompatActivity
 		// edit the settings
 		else if (id == R.id.action_settings)
 		{
+			Log.info("menu: settings");
 			Intent intent = new Intent(this, SettingsActivity.class);
 			startActivity(intent);
 			return true;
@@ -284,7 +307,17 @@ public class MainActivity extends AppCompatActivity
 		// display the help information
 		else if (id == R.id.action_help)
 		{
+			Log.info("menu: help");
 			Intent intent = new Intent(this, HelpActivity.class);
+			startActivity(intent);
+			return true;
+		}
+
+		// display the log files
+		else if (id == R.id.action_log_files)
+		{
+			Log.info("menu: log files");
+			Intent intent = new Intent(this, LogFilesActivity.class);
 			startActivity(intent);
 			return true;
 		}
@@ -292,6 +325,7 @@ public class MainActivity extends AppCompatActivity
 		// display the about information
         else if (id == R.id.action_about)
         {
+			Log.info("menu: about");
             Intent intent = new Intent(this, AboutActivity.class);
             startActivity(intent);
             return true;
@@ -326,6 +360,7 @@ public class MainActivity extends AppCompatActivity
 		{
 			// edit the selected camera
 			case R.id.action_edit:
+				Log.info("context menu: edit");
 				info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
 				camera = adapter.getCameras().get(info.position);
 				startCameraActivity(camera);
@@ -333,6 +368,7 @@ public class MainActivity extends AppCompatActivity
 
 			// prompt the user to delete the selected camera
 			case R.id.action_delete:
+				Log.info("context menu: delete");
 				info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
 				camera = adapter.getCameras().get(info.position);
 				AlertDialog.Builder alert = new AlertDialog.Builder(this);
@@ -342,6 +378,7 @@ public class MainActivity extends AppCompatActivity
 					@Override
 					public void onClick(DialogInterface dialog, int which)
 					{
+						Log.info("context menu: deleting camera " + camera.name);
 						Utils.getCameras().remove(camera);
 						updateCameras();
 						dialog.dismiss();
@@ -370,6 +407,7 @@ public class MainActivity extends AppCompatActivity
 	//******************************************************************************
 	private void startScanner()
 	{
+		Log.info("startScanner");
 		FragmentManager fm = getFragmentManager();
 		scannerFragment = new ScannerFragment();
 		scannerFragment.show(fm, "Scanner");
@@ -380,7 +418,8 @@ public class MainActivity extends AppCompatActivity
 	//******************************************************************************
 	private void startCameraActivity(Camera camera)
 	{
-		Intent intent = new Intent(App.getContext(), CameraActivity.class);
+		Log.info("startCameraActivity: " + camera.name);
+		Intent intent = new Intent(getContext(), CameraActivity.class);
 		intent.putExtra(CameraActivity.CAMERA, camera);
 		startActivity(intent);
 	}
@@ -390,7 +429,8 @@ public class MainActivity extends AppCompatActivity
 	//******************************************************************************
 	private void startVideoActivity(Camera camera)
 	{
-		Intent intent = new Intent(App.getContext(), VideoActivity.class);
+		Log.info("startVideoActivity: " + camera.name);
+		Intent intent = new Intent(getContext(), VideoActivity.class);
 		intent.putExtra(VideoActivity.CAMERA, camera);
 		startActivity(intent);
 	}
@@ -400,6 +440,7 @@ public class MainActivity extends AppCompatActivity
 	//******************************************************************************
 	public void updateCameras()
 	{
+		Log.info("updateCameras");
 		Collections.sort(Utils.getCameras());
 		Utils.saveData();
 		adapter.refresh();
@@ -415,6 +456,7 @@ public class MainActivity extends AppCompatActivity
 		{
 			if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION))
 			{
+				Log.info("network change");
 				setNetworkName();
 				if (adapter != null)
 				{

@@ -8,5 +8,6 @@
     <color name="primary">#C31E1E</color>
     <color name="primary_dark">#671818</color>
     <color name="progress_background">#BBBBBB</color>
+    <color name="textcolor">#FFFFFF</color>
     <color name="transparent_bar">#80000000</color>
 </resources>

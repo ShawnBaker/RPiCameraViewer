@@ -1,4 +1,4 @@
-// Copyright © 2016 Shawn Baker using the MIT License.
+// Copyright © 2016-2017 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
 import android.Manifest;
@@ -17,7 +17,6 @@ import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.Surface;
@@ -35,6 +34,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 
+import ca.frozen.library.classes.Log;
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.R;
 import ca.frozen.rpicameraviewer.classes.Camera;
@@ -61,7 +61,6 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	public final static String FULL_SCREEN = "full_screen";
 
 	// local constants
-	private final static String TAG = "VideoFragment";
 	private final static float MIN_ZOOM = 0.1f;
 	private final static float MAX_ZOOM = 10;
 	private final static int FADEOUT_TIMEOUT = 8000;
@@ -104,12 +103,16 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		// configure the activity
 		super.onCreate(savedInstanceState);
 
+		// initialize the logger
+		Utils.initLogFile(getClass().getSimpleName());
+
 		// load the settings and cameras
 		Utils.loadData();
 
 		// get the parameters
 		camera = getArguments().getParcelable(CAMERA);
 		fullScreen = getArguments().getBoolean(FULL_SCREEN);
+		Log.info("camera: " + camera.toString());
 
 		// create the fade in handler and runnable
 		fadeInHandler = new Handler();
@@ -422,6 +425,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		Bitmap image = textureView.getBitmap();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss");
 		String name = camera.network + "_" + camera.name.replaceAll("\\s+", "") + "_" + sdf.format(new Date()) + ".jpg";
+		Log.info("takeSnapshot: " + name);
 		Utils.saveImage(getActivity().getContentResolver(), image, name, null);
 		MediaActionSound sound = new MediaActionSound();
 		sound.play(MediaActionSound.SHUTTER_CLICK);

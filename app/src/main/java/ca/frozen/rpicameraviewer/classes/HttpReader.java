@@ -1,18 +1,17 @@
 // Copyright © 2016 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.classes;
 
-import android.util.Log;
-
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import ca.frozen.library.classes.Log;
+
 public class HttpReader extends RawH264Reader
 {
 	// local constants
-	private final static String TAG = "HttpReader";
 	private final static int CONNECT_TIMEOUT = 5000;
 	private final static int READ_TIMEOUT = 5000;
 	private final static int TEST_CONNECT_TIMEOUT = 300;
@@ -159,6 +158,7 @@ public class HttpReader extends RawH264Reader
 		}
 		catch (Exception ex)
 		{
+			Log.info("Http getConnection: " + ex.toString());
 			http = null;
 		}
 		return http;

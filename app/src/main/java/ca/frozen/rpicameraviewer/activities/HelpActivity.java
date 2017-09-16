@@ -1,4 +1,4 @@
-// Copyright © 2016 Shawn Baker using the MIT License.
+// Copyright © 2016-2017 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
 import android.os.Bundle;
@@ -7,7 +7,9 @@ import android.text.method.LinkMovementMethod;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import ca.frozen.library.classes.Log;
 import ca.frozen.rpicameraviewer.R;
+import ca.frozen.rpicameraviewer.classes.Utils;
 
 public class HelpActivity extends AppCompatActivity
 {
@@ -21,10 +23,13 @@ public class HelpActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_help);
 
+		// initialize the logger
+		Utils.initLogFile(getClass().getSimpleName());
+
 		// set the views
 		TextView text = (TextView)findViewById(R.id.help_info);
 		text.setMovementMethod(LinkMovementMethod.getInstance());
-    }
+	}
 
 	//******************************************************************************
 	// onOptionsItemSelected
@@ -34,6 +39,7 @@ public class HelpActivity extends AppCompatActivity
 	{
         if (item.getItemId() == android.R.id.home)
 		{
+			Log.info("finish");
 			this.finish();
 			return true;
 		}

@@ -1,4 +1,4 @@
-// Copyright © 2016 Shawn Baker using the MIT License.
+// Copyright © 2016-2017 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
 import android.os.Bundle;
@@ -8,9 +8,11 @@ import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import ca.frozen.library.classes.Log;
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.BuildConfig;
 import ca.frozen.rpicameraviewer.R;
+import ca.frozen.rpicameraviewer.classes.Utils;
 
 public class AboutActivity extends AppCompatActivity
 {
@@ -23,6 +25,9 @@ public class AboutActivity extends AppCompatActivity
 		// configure the activity
         super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_about);
+
+		// initialize the logger
+		Utils.initLogFile(getClass().getSimpleName());
 
 		// set the views
 		ImageView icon = (ImageView)findViewById(R.id.about_icon);
@@ -46,6 +51,7 @@ public class AboutActivity extends AppCompatActivity
 	{
         if (item.getItemId() == android.R.id.home)
 		{
+			Log.info("finish");
 			this.finish();
 			return true;
 		}

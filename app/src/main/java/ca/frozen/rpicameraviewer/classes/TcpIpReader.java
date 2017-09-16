@@ -1,17 +1,16 @@
 // Copyright © 2016 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.classes;
 
-import android.util.Log;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+import ca.frozen.library.classes.Log;
+
 public class TcpIpReader extends RawH264Reader
 {
 	// local constants
-	private final static String TAG = "TcpIpReader";
 	private final static int SOCKET_TIMEOUT = 200;
 
 	// instance variables
@@ -94,6 +93,7 @@ public class TcpIpReader extends RawH264Reader
 		}
 		catch (Exception ex)
 		{
+			Log.info("TcpIp getConnection: " + ex.toString());
 			socket = null;
 		}
 		return socket;

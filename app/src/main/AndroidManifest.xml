@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright © 2016 Shawn Baker using the MIT License. -->
+<!-- Copyright © 2016-2017 Shawn Baker using the MIT License. -->
 <manifest package="ca.frozen.rpicameraviewer"
           xmlns:android="http://schemas.android.com/apk/res/android">
 
@@ -42,6 +42,11 @@
             android:parentActivityName=".activities.MainActivity" >
         </activity>
         <activity
+            android:name=".activities.LogFilesActivity"
+            android:label="@string/log_files"
+            android:parentActivityName=".activities.MainActivity" >
+        </activity>
+        <activity
             android:name=".activities.SettingsActivity"
             android:label="@string/settings"
             android:launchMode="singleTop"
@@ -61,6 +66,16 @@
             android:screenOrientation="sensorLandscape"
             android:parentActivityName=".activities.MainActivity" >
         </activity>
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="ca.frozen.rpicameraviewer.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths" />
+
+        </provider>
     </application>
 
 </manifest>
