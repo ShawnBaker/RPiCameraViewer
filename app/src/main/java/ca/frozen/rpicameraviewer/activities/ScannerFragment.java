@@ -241,7 +241,7 @@ public class ScannerFragment extends DialogFragment
 							try
 							{
 								// try to connect to the device
-								Socket socket = TcpIpReader.getConnection(address, settings.rawTcpIpSource.port);
+								Socket socket = TcpIpReader.getConnection(address, settings.rawTcpIpSource.port, settings.scanTimeout);
 								if (socket != null)
 								{
 									Camera camera = new Camera(Source.ConnectionType.RawTcpIp, network, address, settings.rawTcpIpSource.port);
@@ -257,7 +257,7 @@ public class ScannerFragment extends DialogFragment
 							{
 								try
 								{
-									HttpURLConnection http = HttpReader.getConnection(address, settings.rawHttpSource.port, true);
+									HttpURLConnection http = HttpReader.getConnection(address, settings.rawHttpSource.port, settings.scanTimeout);
 									if (http != null)
 									{
 										InputStream stream = http.getInputStream();
@@ -311,21 +311,15 @@ public class ScannerFragment extends DialogFragment
 		protected void onPostExecute(Void unused)
 		{
 			Log.info("onPostExecute");
-			final MainActivity activity = getActivity(cancelButton);
+			MainActivity activity = getActivity(cancelButton);
 			if (activity != null)
 			{
-				activity.runOnUiThread(new Runnable()
+				cancelButton.setText(App.getStr(R.string.done));
+				if (newCameras.size() > 0)
 				{
-					public void run()
-					{
-						cancelButton.setText(App.getStr(R.string.done));
-						if (newCameras.size() > 0)
-						{
-							activity.updateCameras();
-							dismissHandler.postDelayed(dismissRunner, DISMISS_TIMEOUT);
-						}
-					}
-				});
+					activity.updateCameras();
+					dismissHandler.postDelayed(dismissRunner, DISMISS_TIMEOUT);
+				}
 			}
 		}
 

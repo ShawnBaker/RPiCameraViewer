@@ -12,10 +12,7 @@ import ca.frozen.library.classes.Log;
 public class HttpReader extends RawH264Reader
 {
 	// local constants
-	private final static int CONNECT_TIMEOUT = 5000;
-	private final static int READ_TIMEOUT = 5000;
-	private final static int TEST_CONNECT_TIMEOUT = 300;
-	private final static int TEST_READ_TIMEOUT = 300;
+	private final static int TIMEOUT = 5000;
 	private final static int BLOCK_SIZE = 2048;
 	private final static int NUM_START_BLOCKS = 10;
 	private final static int MAX_BLOCKS = 100;
@@ -45,7 +42,7 @@ public class HttpReader extends RawH264Reader
 			numBlocks = NUM_START_BLOCKS;
 
 			// get the connection
-			http = getConnection(source.address, source.port, false);
+			http = getConnection(source.address, source.port, TIMEOUT);
 
 			// get the input stream
 			inputStream = http.getInputStream();
@@ -140,7 +137,7 @@ public class HttpReader extends RawH264Reader
 	//******************************************************************************
 	// getConnection
 	//******************************************************************************
-	public static HttpURLConnection getConnection(String baseAddress, int port, boolean test)
+	public static HttpURLConnection getConnection(String baseAddress, int port, int timeout)
 	{
 		HttpURLConnection http = null;
 		try
@@ -151,8 +148,8 @@ public class HttpReader extends RawH264Reader
 
 			// get the connection
 			http = (HttpURLConnection) url.openConnection();
-			http.setConnectTimeout(test ? TEST_CONNECT_TIMEOUT : CONNECT_TIMEOUT);
-			http.setReadTimeout(test ? TEST_READ_TIMEOUT : READ_TIMEOUT);
+			http.setConnectTimeout(timeout);
+			http.setReadTimeout(timeout);
 			http.setRequestProperty("Connection", "close");
 			http.connect();
 		}

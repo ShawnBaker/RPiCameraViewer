@@ -30,6 +30,7 @@ public class SettingsActivity extends AppCompatActivity
 	// instance variables
 	private EditText cameraName;
 	private Spinner showCameras;
+	private EditText scanTimeout;
 	private Settings settings;
 
 	//******************************************************************************
@@ -56,6 +57,9 @@ public class SettingsActivity extends AppCompatActivity
 
 		showCameras = (Spinner) findViewById(R.id.settings_show_cameras);
 		showCameras.setSelection(settings.showAllCameras ? ALL_CAMERAS : FILTERED_CAMERAS);
+
+		scanTimeout = (EditText) findViewById(R.id.settings_scan_timeout);
+		scanTimeout.setText(Integer.toString(settings.scanTimeout));
 
 		Button button = (Button) findViewById(R.id.settings_tcp_ip);
 		button.setOnClickListener(new View.OnClickListener()
@@ -96,6 +100,8 @@ public class SettingsActivity extends AppCompatActivity
 	{
 		settings.cameraName = cameraName.getText().toString().trim();
 		settings.showAllCameras = showCameras.getSelectedItemPosition() == ALL_CAMERAS;
+		String timeout = scanTimeout.getText().toString();
+		settings.scanTimeout = (timeout.length() > 0) ? Integer.parseInt(scanTimeout.getText().toString()) : Settings.DEFAULT_TIMEOUT;
 		state.putParcelable("settings", settings);
 		super.onSaveInstanceState(state);
 	}
@@ -171,6 +177,15 @@ public class SettingsActivity extends AppCompatActivity
 		if (settings.cameraName.isEmpty())
 		{
 			App.error(this, R.string.error_no_camera_name);
+			return false;
+		}
+
+		// get and check the scan timeout
+		String timeout = scanTimeout.getText().toString();
+		settings.scanTimeout = (timeout.length() > 0) ? Integer.parseInt(scanTimeout.getText().toString()) : (Settings.MAX_TIMEOUT + 1);
+		if (settings.scanTimeout < Settings.MIN_TIMEOUT || settings.scanTimeout > Settings.MAX_TIMEOUT)
+		{
+			App.error(this, String.format(getString(R.string.error_bad_timeout), Settings.MIN_TIMEOUT, Settings.MAX_TIMEOUT));
 			return false;
 		}
 

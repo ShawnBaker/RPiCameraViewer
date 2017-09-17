@@ -11,7 +11,7 @@ import ca.frozen.library.classes.Log;
 public class TcpIpReader extends RawH264Reader
 {
 	// local constants
-	private final static int SOCKET_TIMEOUT = 200;
+	private final static int TIMEOUT = 5000;
 
 	// instance variables
 	private Socket socket = null;
@@ -25,7 +25,7 @@ public class TcpIpReader extends RawH264Reader
 		super(source);
 		try
 		{
-			socket = getConnection(source.address, source.port);
+			socket = getConnection(source.address, source.port, TIMEOUT);
 			inputStream = socket.getInputStream();
 		}
 		catch (Exception ex) {}
@@ -82,14 +82,14 @@ public class TcpIpReader extends RawH264Reader
 	//******************************************************************************
 	// getConnection
 	//******************************************************************************
-	public static Socket getConnection(String baseAddress, int port)
+	public static Socket getConnection(String baseAddress, int port, int timeout)
 	{
 		Socket socket = null;
 		try
 		{
 			socket = new Socket();
 			InetSocketAddress socketAddress = new InetSocketAddress(baseAddress, port);
-			socket.connect(socketAddress, SOCKET_TIMEOUT);
+			socket.connect(socketAddress, timeout);
 		}
 		catch (Exception ex)
 		{

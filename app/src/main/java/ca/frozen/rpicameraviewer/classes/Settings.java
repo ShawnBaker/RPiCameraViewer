@@ -12,12 +12,18 @@ import ca.frozen.rpicameraviewer.R;
 
 public class Settings implements Parcelable
 {
+	// public constants
+	public final static int MIN_TIMEOUT = 100;
+	public final static int MAX_TIMEOUT = 5000;
+	public final static int DEFAULT_TIMEOUT = 500;
+
 	// local constants
 	private final static String TAG = "Settings";
 
 	// instance variables
 	public String cameraName;
 	public boolean showAllCameras;
+	public int scanTimeout;
 	public Source rawTcpIpSource;
 	public Source rawHttpSource;
 	public Source rawMulticastSource;
@@ -47,6 +53,7 @@ public class Settings implements Parcelable
 	{
 		cameraName = settings.cameraName;
 		showAllCameras = settings.showAllCameras;
+		scanTimeout = settings.scanTimeout;
 		rawTcpIpSource = new Source(settings.rawTcpIpSource);
 		rawHttpSource = new Source(settings.rawHttpSource);
 		rawMulticastSource = new Source(settings.rawMulticastSource);
@@ -62,6 +69,7 @@ public class Settings implements Parcelable
 		{
 			cameraName = obj.getString("cameraName");
 			showAllCameras = obj.getBoolean("showAllCameras");
+			scanTimeout = obj.getInt("scanTimeout");
 			rawTcpIpSource = new Source(obj.getJSONObject("rawTcpIpSource"));
 			rawHttpSource = new Source(obj.getJSONObject("rawHttpSource"));
 			rawMulticastSource = new Source(obj.getJSONObject("rawMulticastSource"));
@@ -80,6 +88,7 @@ public class Settings implements Parcelable
 	{
 		cameraName = App.getStr(R.string.camera);
 		showAllCameras = false;
+		scanTimeout = DEFAULT_TIMEOUT;
 
 		rawTcpIpSource = new Source(Source.ConnectionType.RawTcpIp, "", App.getInt(R.integer.default_tcpip_port));
 		rawTcpIpSource.fps = App.getInt(R.integer.default_fps);
@@ -103,6 +112,7 @@ public class Settings implements Parcelable
 	{
 		dest.writeString(cameraName);
 		dest.writeInt(showAllCameras ? 1 : 0);
+		dest.writeInt(scanTimeout);
 		dest.writeParcelable(rawTcpIpSource, flags);
 		dest.writeParcelable(rawHttpSource, flags);
 		dest.writeParcelable(rawMulticastSource, flags);
@@ -115,6 +125,7 @@ public class Settings implements Parcelable
 	{
 		cameraName = in.readString();
 		showAllCameras = in.readInt() != 0;
+		scanTimeout = in.readInt();
 		rawTcpIpSource = in.readParcelable(Source.class.getClassLoader());
 		rawHttpSource = in.readParcelable(Source.class.getClassLoader());
 		rawMulticastSource = in.readParcelable(Source.class.getClassLoader());
@@ -166,7 +177,7 @@ public class Settings implements Parcelable
 	@Override
 	public String toString()
 	{
-		return cameraName + "," + showAllCameras + "," + rawTcpIpSource.toString() +
+		return cameraName + "," + showAllCameras + "," + scanTimeout + "," + rawTcpIpSource.toString() +
 				"," + rawHttpSource.toString() + "," + rawMulticastSource.toString();
 	}
 
@@ -180,6 +191,7 @@ public class Settings implements Parcelable
 			JSONObject obj = new JSONObject();
 			obj.put("cameraName", cameraName);
 			obj.put("showAllCameras", showAllCameras);
+			obj.put("scanTimeout", scanTimeout);
 			obj.put("rawTcpIpSource", rawTcpIpSource.toJson());
 			obj.put("rawHttpSource", rawHttpSource.toJson());
 			obj.put("rawMulticastSource", rawMulticastSource.toJson());
