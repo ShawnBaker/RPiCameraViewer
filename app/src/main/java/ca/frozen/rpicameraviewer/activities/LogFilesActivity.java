@@ -5,21 +5,22 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.method.LinkMovementMethod;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.TextView;
+import android.widget.ListView;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -35,7 +36,7 @@ public class LogFilesActivity extends AppCompatActivity
 
 	// instance variables
 	private Button file1Button, file2Button;
-	private TextView textView;
+	private ListView listView;
 
 	//******************************************************************************
 	// onCreate
@@ -50,11 +51,8 @@ public class LogFilesActivity extends AppCompatActivity
 		// initialize the log file
 		Utils.initLogFile(getClass().getSimpleName());
 
-		// get the text view
-		textView = (TextView)findViewById(R.id.log_file);
-		textView.setMovementMethod(LinkMovementMethod.getInstance());
-
-		// get the file buttons
+		// get the views
+		listView = (ListView)findViewById(R.id.log_list);
 		file1Button = (Button)findViewById(R.id.log_file_1);
 		file2Button = (Button)findViewById(R.id.log_file_2);
 
@@ -107,34 +105,21 @@ public class LogFilesActivity extends AppCompatActivity
 	//******************************************************************************
 	// loadLogFile
 	//******************************************************************************
-	private void loadLogFile(File logFile, int no_file_id, Button thisButton, Button otherButton)
+	private void loadLogFile(File logFile, int noFileId, Button thisButton, Button otherButton)
 	{
+		// configure the buttons
 		Log.info("load log file: " + logFile.getName());
 		thisButton.setSelected(true);
 		otherButton.setSelected(false);
-		if (logFile.exists())
-		{
-			try
-			{
-				BufferedReader reader = new BufferedReader(new FileReader(logFile));
-				StringBuilder builder = new StringBuilder();
-				String line;
-				while ((line = reader.readLine()) != null)
-				{
-					builder.append(line + "\n");
-				}
-				reader.close();
-				textView.setText(builder.toString());
-			}
-			catch (Exception ex)
-			{
-				textView.setText(no_file_id);
-			}
-		}
-		else
-		{
-			textView.setText(no_file_id);
-		}
+
+		// display the loading message
+		ArrayList<String> loading = new ArrayList<>();
+		loading.add(App.getStr(R.string.loading));
+		ArrayAdapter<String> loadingAdapter = new ArrayAdapter<>(this, R.layout.row_log, loading);
+		listView.setAdapter(loadingAdapter);
+
+		// load the list asynchronously
+		new LogFileLoader(logFile, noFileId).execute();
 	}
 
 	//******************************************************************************
@@ -243,6 +228,67 @@ public class LogFilesActivity extends AppCompatActivity
 		}
 		catch (Exception ex)
 		{
+		}
+	}
+
+	////////////////////////////////////////////////////////////////////////////////
+	// LogFileLoader
+	////////////////////////////////////////////////////////////////////////////////
+	private class LogFileLoader extends AsyncTask<Void, Void, Void>
+	{
+		private File logFile;
+		private int noFileId;
+		private ArrayList<String> lines = new ArrayList<>();
+
+		//******************************************************************************
+		// LogFileLoader
+		//******************************************************************************
+		public LogFileLoader(File logFile, int noFileId)
+		{
+			this.logFile = logFile;
+			this.noFileId = noFileId;
+		}
+
+		//******************************************************************************
+		// doInBackground
+		//******************************************************************************
+		@Override
+		protected Void doInBackground(Void... params)
+		{
+			// get the list of lines
+			if (logFile.exists())
+			{
+				try
+				{
+					Scanner s = new Scanner(logFile).useDelimiter("\n");
+					while (s.hasNext())
+					{
+						lines.add(s.next());
+					}
+					s.close();
+				}
+				catch (Exception ex)
+				{
+					lines.add(App.getStr(noFileId));
+				}
+			}
+			else
+			{
+				lines.add(App.getStr(noFileId));
+			}
+			return null;
+		}
+
+		//******************************************************************************
+		// onPostExecute
+		//******************************************************************************
+		@Override
+		protected void onPostExecute(Void unused)
+		{
+			// display the lines in the list
+			ArrayAdapter<String> adapter = new ArrayAdapter<>(LogFilesActivity.this, R.layout.row_log, lines);
+			listView.setAdapter(adapter);
+			listView.setSelection(adapter.getCount() - 1);
 		}
 	}
 }

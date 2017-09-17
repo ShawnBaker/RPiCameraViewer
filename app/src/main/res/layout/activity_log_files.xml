@@ -54,17 +54,11 @@
 
     </LinearLayout>
 
-    <ScrollView
-        android:layout_width="match_parent"
+    <ListView
+        android:id="@+id/log_list"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp" >
-
-        <TextView
-            android:id="@+id/log_file"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="10sp" />
-
-    </ScrollView>
+        android:layout_marginTop="16dp"
+        android:divider="@null" />
 
 </LinearLayout>
