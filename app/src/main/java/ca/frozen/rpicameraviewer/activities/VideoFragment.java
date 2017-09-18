@@ -439,8 +439,6 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	private class DecoderThread extends Thread
 	{
 		// local constants
-		private final static String TAG = "DecoderThread";
-		private final static int BUFFER_TIMEOUT = 10000;
 		private final static int FINISH_TIMEOUT = 5000;
 		private final static int MULTICAST_BUFFER_SIZE = 16384;
 		private final static int TCPIP_BUFFER_SIZE = 16384;
@@ -455,6 +453,9 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		private Surface surface;
 		private Source source = null;
 		private byte[] buffer = null;
+		private ByteBuffer[] inputBuffers = null;
+		private long presentationTime;
+		private long presentationTimeInc = 66666;
 		private RawH264Reader reader = null;
 		private WifiManager.MulticastLock multicastLock = null;
 		private Handler startVideoHandler;
@@ -541,10 +542,6 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 			int nalLen = 0;
 			int numZeroes = 0;
 			int numReadErrors = 0;
-			long presentationTime = System.nanoTime() / 1000;
-			boolean gotSPS = false;
-			boolean gotHeader = false;
-			ByteBuffer[] inputBuffers = null;
 
 			try
 			{
@@ -589,7 +586,6 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 				{
 					// read from the stream
 					int len = reader.read(buffer);
-					//Log.d(TAG, String.format("len = %d", len));
 
 					// process the input buffer
 					if (len > 0)
@@ -597,76 +593,34 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 						numReadErrors = 0;
 						for (int i = 0; i < len; i++)
 						{
+							// add the byte to the NAL
+							if (nalLen == nal.length)
+							{
+								nal = Arrays.copyOf(nal, nal.length + NAL_SIZE_INC);
+							}
+							nal[nalLen++] = buffer[i];
+
+							// look for a header
 							if (buffer[i] == 0)
 							{
 								numZeroes++;
 							}
 							else
 							{
-								if (buffer[i] == 1)
+								if (buffer[i] == 1 && numZeroes == 3)
 								{
-									if (numZeroes == 3)
+									if (nalLen > 4)
 									{
-										if (gotHeader)
+										int nalType = processNal(nal, nalLen - 4);
+										if (nalType == -1)
 										{
-											nalLen -= numZeroes;
-											if (!gotSPS && (nal[numZeroes + 1] & 0x1F) == 7)
-											{
-												//Log.d(TAG, String.format("SPS: %d = %02X %02X %02X %02X %02X", nalLen, nal[0], nal[1], nal[2], nal[3], nal[4]));
-												SpsParser parser = new SpsParser(nal, nalLen);
-												int width = (source.width != 0) ? source.width : parser.width;
-												int height = (source.height != 0) ? source.height : parser.height;
-												//Log.d(TAG, String.format("SPS: size = %d x %d", width, height));
-												format = MediaFormat.createVideoFormat("video/avc", width, height);
-												if (source.fps != 0)
-												{
-													format.setInteger(MediaFormat.KEY_FRAME_RATE, source.fps);
-												}
-												if (source.bps != 0)
-												{
-													format.setInteger(MediaFormat.KEY_BIT_RATE, source.bps);
-												}
-												decoder.configure(format, surface, null, 0);
-												setDecodingState(true);
-												inputBuffers = decoder.getInputBuffers();
-												hideMessage();
-												startVideoHandler.post(startVideoRunner);
-												gotSPS = true;
-											}
-											if (gotSPS && decoding)
-											{
-												int index = decoder.dequeueInputBuffer(BUFFER_TIMEOUT);
-												if (index >= 0)
-												{
-													ByteBuffer inputBuffer = inputBuffers[index];
-													//ByteBuffer inputBuffer = decoder.getInputBuffer(index);
-													inputBuffer.put(nal, 0, nalLen);
-													decoder.queueInputBuffer(index, 0, nalLen, presentationTime, 0);
-													presentationTime += 66666;
-												}
-												//Log.d(TAG, String.format("NAL: %d  %d", nalLen, index));
-											}
+											nal[0] = nal[1] = nal[2] = 0;
+											nal[3] = 1;
 										}
-										for (int j = 0; j < numZeroes; j++)
-										{
-											nal[j] = 0;
-										}
-										nalLen = numZeroes;
-										gotHeader = true;
 									}
+									nalLen = 4;
 								}
 								numZeroes = 0;
-							}
-
-							// add the byte to the NAL
-							if (gotHeader)
-							{
-								if (nalLen == nal.length)
-								{
-									nal = Arrays.copyOf(nal, nal.length + NAL_SIZE_INC);
-									//Log.d(TAG, String.format("NAL size: %d", nal.length));
-								}
-								nal[nalLen++] = buffer[i];
 							}
 						}
 					}
@@ -678,23 +632,28 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 							setMessage(R.string.error_lost_connection);
 							break;
 						}
-						//Log.d(TAG, "len == 0");
 					}
 
 					// send an output buffer to the surface
 					if (format != null && decoding)
 					{
 						MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
-						int index = decoder.dequeueOutputBuffer(info, BUFFER_TIMEOUT);
-						if (index >= 0)
+						int index;
+						do
 						{
-							decoder.releaseOutputBuffer(index, true);
-						}
+							index = decoder.dequeueOutputBuffer(info, presentationTimeInc);
+							if (index >= 0)
+							{
+								decoder.releaseOutputBuffer(index, true);
+							}
+							//Log.info(String.format("dequeueOutputBuffer index = %d", index));
+						} while (index >= 0);
 					}
 				}
 			}
 			catch (Exception ex)
 			{
+				Log.error(ex.toString());
 				if (reader == null || !reader.isConnected())
 				{
 					setMessage(R.string.error_couldnt_connect);
@@ -704,7 +663,6 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 				{
 					setMessage(R.string.error_lost_connection);
 				}
-				//Log.d(TAG, ex.toString());
 				ex.printStackTrace();
 			}
 
@@ -744,6 +702,61 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 				catch (Exception ex) {}
 				multicastLock = null;
 			}
+		}
+
+		//******************************************************************************
+		// processNal
+		//******************************************************************************
+		private int processNal(byte[] nal, int nalLen)
+		{
+			// get the NAL type
+			int nalType = (nalLen > 4 && nal[0] == 0 && nal[1] == 0 && nal[2] == 0 && nal[3] == 1) ? (nal[4] & 0x1F) : -1;
+			//Log.info(String.format("NAL: type = %d, len = %d", nalType, nalLen));
+
+			// process the first SPS record we encounter
+			if (nalType == 7 && !decoding)
+			{
+				SpsParser parser = new SpsParser(nal, nalLen);
+				int width = (source.width != 0) ? source.width : parser.width;
+				int height = (source.height != 0) ? source.height : parser.height;
+				format = MediaFormat.createVideoFormat("video/avc", width, height);
+				if (source.fps != 0)
+				{
+					format.setInteger(MediaFormat.KEY_FRAME_RATE, source.fps);
+					presentationTimeInc = 1000000 / source.fps;
+				}
+				else
+				{
+					presentationTimeInc = 66666;
+				}
+				presentationTime = System.nanoTime() / 1000;
+				if (source.bps != 0)
+				{
+					format.setInteger(MediaFormat.KEY_BIT_RATE, source.bps);
+				}
+				Log.info(String.format("SPS: %02X, %d x %d, %d, %d, %d", nal[4], width, height, source.fps, source.bps, presentationTimeInc));
+				decoder.configure(format, surface, null, 0);
+				setDecodingState(true);
+				inputBuffers = decoder.getInputBuffers();
+				hideMessage();
+				startVideoHandler.post(startVideoRunner);
+			}
+
+			// queue the frame
+			if (nalType > 0 && decoding)
+			{
+				int index = decoder.dequeueInputBuffer(presentationTimeInc);
+				if (index >= 0)
+				{
+					ByteBuffer inputBuffer = inputBuffers[index];
+					//ByteBuffer inputBuffer = decoder.getInputBuffer(index);
+					inputBuffer.put(nal, 0, nalLen);
+					decoder.queueInputBuffer(index, 0, nalLen, presentationTime, 0);
+					presentationTime += presentationTimeInc;
+				}
+				//Log.info(String.format("dequeueInputBuffer index = %d", index));
+			}
+			return nalType;
 		}
 
 		//******************************************************************************
