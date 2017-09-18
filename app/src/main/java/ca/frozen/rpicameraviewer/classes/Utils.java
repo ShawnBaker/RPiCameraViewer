@@ -315,7 +315,7 @@ public class Utils
 	public static String getWifiName()
 	{
 		String ssid = "";
-		WifiManager manager = (WifiManager)App.getContext().getSystemService(Context.WIFI_SERVICE);
+		WifiManager manager = (WifiManager)App.getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 		if (manager.isWifiEnabled())
 		{
 			WifiInfo wifiInfo = manager.getConnectionInfo();
