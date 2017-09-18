@@ -45,6 +45,7 @@ public class ScannerFragment extends DialogFragment
 	private Button cancelButton = null;
 	private Runnable dismissRunner;
 	private Handler dismissHandler = new Handler();
+	private String savedTag;
 
 	//******************************************************************************
 	// onCreate
@@ -56,6 +57,7 @@ public class ScannerFragment extends DialogFragment
 		setRetainInstance(true);
 
 		// initialize the logger
+		savedTag = Log.getTag();
 		Utils.initLogFile(getClass().getSimpleName());
 
 		// load the settings and cameras
@@ -147,6 +149,7 @@ public class ScannerFragment extends DialogFragment
 			getDialog().setDismissMessage(null);
 		}
 		super.onDestroyView();
+		Log.setTag(savedTag);
 	}
 
 	//******************************************************************************

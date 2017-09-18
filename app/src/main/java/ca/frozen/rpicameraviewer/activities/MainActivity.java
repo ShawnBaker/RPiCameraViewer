@@ -160,6 +160,7 @@ public class MainActivity extends AppCompatActivity
 	@Override
 	public void onResume()
 	{
+		Log.setTag(getClass().getSimpleName());
 		super.onResume();
 		Utils.reloadData();
 		adapter.refresh();
