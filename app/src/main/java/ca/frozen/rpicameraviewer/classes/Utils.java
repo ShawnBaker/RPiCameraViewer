@@ -417,7 +417,7 @@ public class Utils
 			File rpi = new File(pictures, App.getStr(R.string.app_name));
 			if (!rpi.exists())
 			{
-				rpi.mkdir();
+				rpi.mkdirs();
 			}
 
 			// save the file within the snapshots folder
