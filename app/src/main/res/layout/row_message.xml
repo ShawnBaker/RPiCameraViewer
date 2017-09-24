@@ -24,8 +24,8 @@
         android:layout_below="@+id/message_text"
         android:layout_centerHorizontal="true"
         android:textSize="20sp"
-        android:background="@color/primary"
-        android:textColor="@android:color/white"
+        android:background="@drawable/button"
+        android:textColor="@color/button_text"
         android:text="@string/scan" />
 
 </RelativeLayout>

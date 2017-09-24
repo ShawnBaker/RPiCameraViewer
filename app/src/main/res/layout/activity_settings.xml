@@ -102,6 +102,8 @@
                     android:id="@+id/settings_tcp_ip"
                     android:layout_width="140dp"
                     android:layout_height="wrap_content"
+                    android:background="@drawable/button"
+                    android:textColor="@color/button_text"
                     android:text="@string/tcp_ip"
                     />
 
@@ -109,6 +111,9 @@
                     android:id="@+id/settings_http"
                     android:layout_width="140dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/button"
+                    android:textColor="@color/button_text"
                     android:text="@string/http"
                     />
 
@@ -116,6 +121,9 @@
                     android:id="@+id/settings_multicast"
                     android:layout_width="140dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/button"
+                    android:textColor="@color/button_text"
                     android:text="@string/multicast"
                     />
 

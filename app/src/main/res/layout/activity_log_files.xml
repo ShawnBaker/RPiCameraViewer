@@ -22,7 +22,7 @@
             android:layout_width="70dp"
             android:layout_height="wrap_content"
             android:background="@drawable/button"
-            android:textColor="@color/textcolor"
+            android:textColor="@color/button_text"
             android:text="@string/file_1" />
 
         <Button
@@ -30,7 +30,7 @@
             android:layout_width="70dp"
             android:layout_height="wrap_content"
             android:background="@drawable/button"
-            android:textColor="@color/textcolor"
+            android:textColor="@color/button_text"
             android:layout_marginLeft="8dp"
             android:text="@string/file_2" />
 
@@ -39,7 +39,7 @@
             android:layout_width="70dp"
             android:layout_height="wrap_content"
             android:background="@drawable/button"
-            android:textColor="@color/textcolor"
+            android:textColor="@color/button_text"
             android:layout_marginLeft="8dp"
             android:text="@string/clear" />
 
@@ -48,7 +48,7 @@
             android:layout_width="70dp"
             android:layout_height="wrap_content"
             android:background="@drawable/button"
-            android:textColor="@color/textcolor"
+            android:textColor="@color/button_text"
             android:layout_marginLeft="8dp"
             android:text="@string/email" />
 
