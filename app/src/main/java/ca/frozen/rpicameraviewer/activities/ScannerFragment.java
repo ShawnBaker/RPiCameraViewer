@@ -312,7 +312,7 @@ public class ScannerFragment extends DialogFragment
 			MainActivity activity = getActivity(cancelButton);
 			if (activity != null)
 			{
-				cancelButton.setText(App.getStr(R.string.done));
+				cancelButton.setText(getString(R.string.done));
 				if (newCameras.size() > 0)
 				{
 					activity.updateCameras();
@@ -442,21 +442,21 @@ public class ScannerFragment extends DialogFragment
 		//******************************************************************************
 		private synchronized void setStatus(boolean last)
 		{
-			message.setText(String.format(App.getStr(R.string.scanning_on_ports),
+			message.setText(String.format(getString(R.string.scanning_on_ports),
 							settings.rawTcpIpSource.port, settings.rawHttpSource.port));
 			progress.setProgress(numDone);
-			status.setText(String.format(App.getStr(R.string.num_new_cameras_found), newCameras.size()));
+			status.setText(String.format(getString(R.string.num_new_cameras_found), newCameras.size()));
 			if (newCameras.size() > 0)
 			{
-				status.setTextColor(ContextCompat.getColor(App.getContext(), R.color.good_text));
+				status.setTextColor(App.getClr(R.color.good_text));
 			}
 			else if (last)
 			{
-				status.setTextColor(ContextCompat.getColor(App.getContext(), R.color.bad_text));
+				status.setTextColor(App.getClr(R.color.bad_text));
 			}
 			if (last)
 			{
-				cancelButton.setText(App.getStr(R.string.done));
+				cancelButton.setText(getString(R.string.done));
 			}
 		}
 
