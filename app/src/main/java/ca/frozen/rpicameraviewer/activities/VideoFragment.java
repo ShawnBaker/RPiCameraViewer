@@ -260,7 +260,6 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults)
 	{
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-		requestCode &= 0xFFFF;
 		if (requestCode == REQUEST_WRITE_EXTERNAL_STORAGE && grantResults.length > 0 &&
 			grantResults[0] == PackageManager.PERMISSION_GRANTED)
 		{
