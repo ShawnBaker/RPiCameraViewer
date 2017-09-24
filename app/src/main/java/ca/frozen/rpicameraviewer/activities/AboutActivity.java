@@ -9,7 +9,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import ca.frozen.library.classes.Log;
-import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.BuildConfig;
 import ca.frozen.rpicameraviewer.R;
 import ca.frozen.rpicameraviewer.classes.Utils;
@@ -34,10 +33,10 @@ public class AboutActivity extends AppCompatActivity
 		icon.setImageResource(R.drawable.logo);
 
 		TextView text = (TextView)findViewById(R.id.about_title);
-		text.setText(App.getStr(R.string.app_name));
+		text.setText(getString(R.string.app_name));
 
 		text = (TextView)findViewById(R.id.about_version);
-		text.setText(App.getStr(R.string.version) + " " + BuildConfig.VERSION_NAME);
+		text.setText(getString(R.string.version) + " " + BuildConfig.VERSION_NAME);
 
 		text = (TextView)findViewById(R.id.about_license);
 		text.setMovementMethod(LinkMovementMethod.getInstance());

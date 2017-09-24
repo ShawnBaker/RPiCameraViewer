@@ -25,7 +25,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import ca.frozen.library.classes.Log;
-import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.R;
 import ca.frozen.rpicameraviewer.classes.Utils;
 
@@ -114,7 +113,7 @@ public class LogFilesActivity extends AppCompatActivity
 
 		// display the loading message
 		ArrayList<String> loading = new ArrayList<>();
-		loading.add(App.getStr(R.string.loading));
+		loading.add(getString(R.string.loading));
 		ArrayAdapter<String> loadingAdapter = new ArrayAdapter<>(this, R.layout.row_log, loading);
 		listView.setAdapter(loadingAdapter);
 
@@ -161,12 +160,12 @@ public class LogFilesActivity extends AppCompatActivity
 		intent.setType("text/plain");
 
 		// set the to and subject fields
-		intent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[] { App.getStr(R.string.email_address) } );
-		intent.putExtra(Intent.EXTRA_SUBJECT, App.getStr(R.string.app_name) + " " + App.getStr(R.string.log_files));
+		intent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[] { getString(R.string.email_address) } );
+		intent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.app_name) + " " + getString(R.string.log_files));
 
 		// get the ZIP file
 		File dir = new File(getApplicationContext().getFilesDir(), "logs");
-		String appName = App.getStr(R.string.app_name).replaceAll("\\s+", "");
+		String appName = getString(R.string.app_name).replaceAll("\\s+", "");
 		File zipFile = new File(dir, appName + "LogFiles.zip");
 		try
 		{
@@ -190,7 +189,7 @@ public class LogFilesActivity extends AppCompatActivity
 		}
 
 		// attach the zip file
-		String providerName = App.getStr(R.string.file_provider);
+		String providerName = getString(R.string.file_provider);
 		Uri uri = FileProvider.getUriForFile(this, providerName, zipFile);
 		intent.putExtra(Intent.EXTRA_STREAM, uri);
 		intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -269,12 +268,12 @@ public class LogFilesActivity extends AppCompatActivity
 				}
 				catch (Exception ex)
 				{
-					lines.add(App.getStr(noFileId));
+					lines.add(getString(noFileId));
 				}
 			}
 			else
 			{
-				lines.add(App.getStr(noFileId));
+				lines.add(getString(noFileId));
 			}
 			return null;
 		}
