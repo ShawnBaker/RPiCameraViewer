@@ -14,7 +14,6 @@ import android.media.MediaFormat;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
@@ -35,6 +34,7 @@ import java.util.Arrays;
 import java.util.Date;
 
 import ca.frozen.library.classes.Log;
+import ca.frozen.library.views.ZoomPanTextureView;
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.R;
 import ca.frozen.rpicameraviewer.classes.Camera;
@@ -45,7 +45,6 @@ import ca.frozen.rpicameraviewer.classes.Source;
 import ca.frozen.rpicameraviewer.classes.SpsParser;
 import ca.frozen.rpicameraviewer.classes.TcpIpReader;
 import ca.frozen.rpicameraviewer.classes.Utils;
-import ca.frozen.library.views.ZoomPanTextureView;
 
 public class VideoFragment extends Fragment implements TextureView.SurfaceTextureListener
 {
@@ -66,7 +65,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	private final static int FADEOUT_TIMEOUT = 8000;
 	private final static int FADEOUT_ANIMATION_TIME = 500;
 	private final static int FADEIN_ANIMATION_TIME = 400;
-	private final static int REQUEST_WRITE_EXTERNAL_STORAGE = 1;
+	private final static int REQUEST_WRITE_EXTERNAL_STORAGE = 73;
 
 	// instance variables
 	private Camera camera;
@@ -230,9 +229,9 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 				int check = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
 				if (check != PackageManager.PERMISSION_GRANTED)
 				{
-					ActivityCompat.requestPermissions(getActivity(),
-							new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-							REQUEST_WRITE_EXTERNAL_STORAGE);
+					Log.info("ask for external storage permission");
+					requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+										REQUEST_WRITE_EXTERNAL_STORAGE);
 				}
 				else
 				{
@@ -260,12 +259,13 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	@Override
 	public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults)
 	{
-		if (requestCode == REQUEST_WRITE_EXTERNAL_STORAGE)
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+		requestCode &= 0xFFFF;
+		if (requestCode == REQUEST_WRITE_EXTERNAL_STORAGE && grantResults.length > 0 &&
+			grantResults[0] == PackageManager.PERMISSION_GRANTED)
 		{
-			if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-			{
-				takeSnapshot();
-			}
+			Log.info("external storage permission granted");
+			takeSnapshot();
 		}
 	}
 
@@ -422,14 +422,22 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	//******************************************************************************
 	private void takeSnapshot()
 	{
+		// get the snapshot image
 		Bitmap image = textureView.getBitmap();
+
+		// save the image
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss");
 		String name = camera.network + "_" + camera.name.replaceAll("\\s+", "") + "_" + sdf.format(new Date()) + ".jpg";
-		Log.info("takeSnapshot: " + name);
 		Utils.saveImage(getActivity().getContentResolver(), image, name, null);
+		Log.info("takeSnapshot: " + name);
+
+		// play the shutter sound
 		MediaActionSound sound = new MediaActionSound();
 		sound.play(MediaActionSound.SHUTTER_CLICK);
-		Toast toast = Toast.makeText(getActivity(), App.getStr(R.string.image_saved), Toast.LENGTH_SHORT);
+
+		// display a message
+		String msg = String.format(getString(R.string.image_saved), getString(R.string.app_name));
+		Toast toast = Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT);
 		toast.show();
 	}
 
@@ -548,7 +556,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 				// get the multicast lock if necessary
 				if (camera.source.connectionType == Source.ConnectionType.RawMulticast)
 				{
-					WifiManager wifi = (WifiManager) App.getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+					WifiManager wifi = (WifiManager)getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 					if (wifi != null)
 					{
 						multicastLock = wifi.createMulticastLock("rpicamlock");
