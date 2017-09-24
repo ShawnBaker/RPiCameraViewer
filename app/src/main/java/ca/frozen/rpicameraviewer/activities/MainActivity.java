@@ -1,7 +1,6 @@
 // Copyright © 2016-2017 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
-import android.Manifest;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.content.BroadcastReceiver;
@@ -9,13 +8,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.ContextMenu;
@@ -34,8 +30,6 @@ import ca.frozen.rpicameraviewer.classes.Camera;
 import ca.frozen.rpicameraviewer.classes.CameraAdapter;
 import ca.frozen.rpicameraviewer.classes.Utils;
 import ca.frozen.rpicameraviewer.R;
-
-import static ca.frozen.rpicameraviewer.App.getContext;
 
 public class MainActivity extends AppCompatActivity
 {
@@ -58,16 +52,6 @@ public class MainActivity extends AppCompatActivity
 
 		// initialize the logger
 		Utils.initLogFile(getClass().getSimpleName());
-
-		// check for external storage permission
-		int check = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-		if (check != PackageManager.PERMISSION_GRANTED)
-		{
-			Log.info("ask for external storage permission");
-			ActivityCompat.requestPermissions(this,
-					new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-					1);
-		}
 
 		// create the toolbar
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -420,7 +404,7 @@ public class MainActivity extends AppCompatActivity
 	private void startCameraActivity(Camera camera)
 	{
 		Log.info("startCameraActivity: " + camera.name);
-		Intent intent = new Intent(getContext(), CameraActivity.class);
+		Intent intent = new Intent(getApplicationContext(), CameraActivity.class);
 		intent.putExtra(CameraActivity.CAMERA, camera);
 		startActivity(intent);
 	}
@@ -431,7 +415,7 @@ public class MainActivity extends AppCompatActivity
 	private void startVideoActivity(Camera camera)
 	{
 		Log.info("startVideoActivity: " + camera.name);
-		Intent intent = new Intent(getContext(), VideoActivity.class);
+		Intent intent = new Intent(getApplicationContext(), VideoActivity.class);
 		intent.putExtra(VideoActivity.CAMERA, camera);
 		startActivity(intent);
 	}
