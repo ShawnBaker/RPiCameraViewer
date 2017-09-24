@@ -202,7 +202,7 @@ public class SettingsActivity extends AppCompatActivity
 	private void startSourceActivity(Source source)
 	{
 		Log.info("startSourceActivity: " + source.toString());
-		Intent intent = new Intent(App.getContext(), SourceActivity.class);
+		Intent intent = new Intent(getApplicationContext(), SourceActivity.class);
 		intent.putExtra(SourceActivity.SOURCE, source);
 		startActivityForResult(intent, EDIT_SOURCE);
 	}
