@@ -214,7 +214,7 @@ public class ScannerFragment extends DialogFragment
 		@Override
 		protected Void doInBackground(Void... params)
 		{
-			Log.info("onPreExecute");
+			Log.info("doInBackground");
 			if (ipAddress != null && !ipAddress.isEmpty())
 			{
 				int i = ipAddress.lastIndexOf('.');
