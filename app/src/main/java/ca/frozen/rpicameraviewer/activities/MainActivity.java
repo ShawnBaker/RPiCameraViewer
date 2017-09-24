@@ -53,12 +53,12 @@ public class MainActivity extends AppCompatActivity
 		// initialize the logger
 		Utils.initLogFile(getClass().getSimpleName());
 
+		// load the settings and cameras
+		Utils.loadData();
+
 		// create the toolbar
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
-
-		// load the settings and cameras
-		Utils.loadData();
 
 		// set the list adapter
 		adapter = new CameraAdapter(new View.OnClickListener()
