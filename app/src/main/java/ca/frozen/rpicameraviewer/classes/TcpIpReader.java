@@ -10,8 +10,11 @@ import ca.frozen.library.classes.Log;
 
 public class TcpIpReader extends RawH264Reader
 {
+	// public constants
+	public final static int IO_TIMEOUT = 1000;
+
 	// local constants
-	private final static int TIMEOUT = 5000;
+	private final static int CONNECT_TIMEOUT = 5000;
 
 	// instance variables
 	private Socket socket = null;
@@ -25,7 +28,8 @@ public class TcpIpReader extends RawH264Reader
 		super(source);
 		try
 		{
-			socket = getConnection(source.address, source.port, TIMEOUT);
+			socket = getConnection(source.address, source.port, CONNECT_TIMEOUT);
+			socket.setSoTimeout(IO_TIMEOUT);
 			inputStream = socket.getInputStream();
 		}
 		catch (Exception ex) {}
