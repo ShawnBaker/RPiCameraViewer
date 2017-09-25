@@ -440,6 +440,26 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		toast.show();
 	}
 
+	//******************************************************************************
+	// stop
+	//******************************************************************************
+	public void stop()
+	{
+		if (decoder != null)
+		{
+			messageView.setText(R.string.closing_video);
+			messageView.setTextColor(App.getClr(R.color.good_text));
+			messageView.setVisibility(View.VISIBLE);
+			decoder.interrupt();
+			try
+			{
+				decoder.join(TcpIpReader.IO_TIMEOUT * 2);
+			}
+			catch (Exception ex) {}
+			decoder = null;
+		}
+	}
+
 	////////////////////////////////////////////////////////////////////////////////
 	// DecoderThread
 	////////////////////////////////////////////////////////////////////////////////
@@ -589,16 +609,17 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 				}
 
 				// read from the source
-				while (!Thread.interrupted())
+				while (!isInterrupted())
 				{
 					// read from the stream
 					int len = reader.read(buffer);
+					if (isInterrupted()) break;
 
 					// process the input buffer
 					if (len > 0)
 					{
 						numReadErrors = 0;
-						for (int i = 0; i < len; i++)
+						for (int i = 0; i < len && !isInterrupted(); i++)
 						{
 							// add the byte to the NAL
 							if (nalLen == nal.length)
@@ -619,6 +640,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 									if (nalLen > 4)
 									{
 										int nalType = processNal(nal, nalLen - 4);
+										if (isInterrupted()) break;
 										if (nalType == -1)
 										{
 											nal[0] = nal[1] = nal[2] = 0;
@@ -644,11 +666,13 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 					// send an output buffer to the surface
 					if (format != null && decoding)
 					{
+						if (isInterrupted()) break;
 						MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
 						int index;
 						do
 						{
 							index = decoder.dequeueOutputBuffer(info, presentationTimeInc);
+							if (isInterrupted()) break;
 							if (index >= 0)
 							{
 								decoder.releaseOutputBuffer(index, true);

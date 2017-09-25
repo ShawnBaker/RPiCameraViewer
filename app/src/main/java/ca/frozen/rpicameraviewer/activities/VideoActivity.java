@@ -88,4 +88,14 @@ public class VideoActivity extends AppCompatActivity implements VideoFragment.On
 		visibility |= View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
 		frameLayout.setSystemUiVisibility(visibility);
 	}
+
+	//******************************************************************************
+	// onBackPressed
+	//******************************************************************************
+	@Override
+	public void onBackPressed()
+	{
+		videoFragment.stop();
+		super.onBackPressed();
+	}
 }
