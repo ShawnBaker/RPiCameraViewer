@@ -10,6 +10,7 @@
     <string name="camera_name">Camera Name</string>
     <string name="cancel">Cancel</string>
     <string name="clear">Clear</string>
+    <string name="closing_video">Closing video connection...</string>
     <string name="color">Color</string>
     <string name="connection_defaults">Connection\nDefaults</string>
     <string name="connection_type">Connection Type</string>
