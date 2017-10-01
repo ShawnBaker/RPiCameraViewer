@@ -671,7 +671,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 						int index;
 						do
 						{
-							index = decoder.dequeueOutputBuffer(info, presentationTimeInc);
+							index = decoder.dequeueOutputBuffer(info, 0);
 							if (isInterrupted()) break;
 							if (index >= 0)
 							{
@@ -776,7 +776,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 			// queue the frame
 			if (nalType > 0 && decoding)
 			{
-				int index = decoder.dequeueInputBuffer(presentationTimeInc);
+				int index = decoder.dequeueInputBuffer(0);
 				if (index >= 0)
 				{
 					ByteBuffer inputBuffer = inputBuffers[index];
