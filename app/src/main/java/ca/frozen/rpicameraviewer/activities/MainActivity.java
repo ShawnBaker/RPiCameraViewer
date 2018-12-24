@@ -1,6 +1,7 @@
 // Copyright © 2016-2017 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.content.BroadcastReceiver;
@@ -8,10 +9,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.ContextMenu;
@@ -34,6 +38,9 @@ import ca.frozen.rpicameraviewer.R;
 
 public class MainActivity extends AppCompatActivity
 {
+	// local constants
+	private final static int REQUEST_ACCESS_FINE_LOCATION = 74;
+
 	// instance variables
 	private CameraAdapter adapter;
 	private ScannerFragment scannerFragment;
@@ -68,7 +75,7 @@ public class MainActivity extends AppCompatActivity
 			@Override
 			public void onClick(View v)
 			{
-				startScanner();
+				startScannerWithPermission();
 			}
 		});
 		adapter.refresh();
@@ -106,7 +113,7 @@ public class MainActivity extends AppCompatActivity
 				@Override
 				public void run()
 				{
-					startScanner();
+					startScannerWithPermission();
 				}
 			}, 500);
 		}
@@ -237,7 +244,7 @@ public class MainActivity extends AppCompatActivity
 		else if (id == R.id.action_scan)
 		{
 			Log.info("menu: scan");
-			startScanner();
+			startScannerWithPermission();
 			return true;
 		}
 
@@ -387,6 +394,40 @@ public class MainActivity extends AppCompatActivity
 			default:
 				return super.onContextItemSelected(item);
 		}
+	}
+
+	//******************************************************************************
+	// startScannerWithPermission
+	//******************************************************************************
+	private void startScannerWithPermission()
+	{
+		int check = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION);
+		if (check != PackageManager.PERMISSION_GRANTED)
+		{
+			Log.info("ask for fine location permission");
+			ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+												REQUEST_ACCESS_FINE_LOCATION);
+		}
+		else
+		{
+			startScanner();
+		}
+	}
+
+	//******************************************************************************
+	// onRequestPermissionsResult
+	//******************************************************************************
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults)
+	{
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+		if (requestCode == REQUEST_ACCESS_FINE_LOCATION && grantResults.length > 0 &&
+			grantResults[0] == PackageManager.PERMISSION_GRANTED)
+		{
+			Log.info("fine location permission granted");
+			setNetworkName();
+		}
+		startScanner();
 	}
 
 	//******************************************************************************

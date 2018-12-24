@@ -82,7 +82,7 @@
     <string name="no_cameras">There are no cameras.</string>
     <string name="no_file_1">Log file 1 doesn\'t exist.</string>
     <string name="no_file_2">Log file 2 doesn\'t exist.</string>
-    <string name="no_network">no network</string>
+    <string name="no_network">no\nnetwork</string>
     <string name="num_new_cameras_found" formatted="false">Number of new cameras found: %d</string>
     <string name="ok">OK</string>
     <string name="ok_to_clear_logs">Are you sure you want to delete the contents of the log files?</string>
@@ -109,6 +109,7 @@
     <string name="source">Source</string>
     <string name="tcp_ip">TCP/IP</string>
     <string name="tcp_ip_defaults">TCP/IP Defaults</string>
+    <string name="unknown_network">unknown\nnetwork</string>
     <string name="use_default_hint">use default</string>
     <string name="use_stream_height">use stream height</string>
     <string name="use_stream_width">use stream width</string>
