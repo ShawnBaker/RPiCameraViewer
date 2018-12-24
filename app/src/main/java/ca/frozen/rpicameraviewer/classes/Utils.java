@@ -15,6 +15,7 @@ import android.net.wifi.WifiManager;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.text.format.Formatter;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -23,13 +24,8 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 
@@ -247,24 +243,22 @@ public class Utils
 	//******************************************************************************
 	public static String getLocalIpAddress()
 	{
-		try {
-			for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();)
+		String address = "";
+		WifiManager manager = (WifiManager)App.getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+		if (manager.isWifiEnabled())
+		{
+			WifiInfo wifiInfo = manager.getConnectionInfo();
+			if (wifiInfo != null)
 			{
-				NetworkInterface intf = en.nextElement();
-				for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();)
+				NetworkInfo.DetailedState state = WifiInfo.getDetailedStateOf(wifiInfo.getSupplicantState());
+				if (state == NetworkInfo.DetailedState.CONNECTED || state == NetworkInfo.DetailedState.OBTAINING_IPADDR)
 				{
-					InetAddress inetAddress = enumIpAddr.nextElement();
-					if (!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address)
-					{
-						return inetAddress.getHostAddress();
-					}
+					int ip = wifiInfo.getIpAddress();
+					address = Formatter.formatIpAddress(ip);
 				}
 			}
-		} catch (SocketException ex)
-		{
-			ex.printStackTrace();
 		}
-		return null;
+		return address;
 	}
 
 	//******************************************************************************
@@ -327,6 +321,10 @@ public class Utils
 					ssid = wifiInfo.getSSID();
 					if (ssid == null) ssid = "";
 					ssid = ssid.replaceAll("^\"|\"$", "");
+					if (ssid.equals("<unknown ssid>"))
+					{
+						ssid = App.getStr(R.string.unknown_network);
+					}
 				}
 			}
 		}
