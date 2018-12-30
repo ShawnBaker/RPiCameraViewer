@@ -1,5 +1,6 @@
 @echo off
 
+call :export dark_chevron
 call :export snapshot_button
 REM call :export video_button
 call :export white_plus

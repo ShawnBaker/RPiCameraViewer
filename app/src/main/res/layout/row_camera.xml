@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright © 2016 Shawn Baker using the MIT License. -->
+<!-- Copyright © 2016-2018 Shawn Baker using the MIT License. -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
+	android:descendantFocusability="blocksDescendants"
     android:padding="5dp" >
 
     <ImageView
@@ -30,5 +31,15 @@
 		android:layout_below="@+id/camera_name"
 		android:layout_alignLeft="@+id/camera_name"
 		android:textSize="12sp" />
+
+	<ImageButton
+		android:id="@+id/camera_edit"
+		android:layout_width="40dp"
+		android:layout_height="wrap_content"
+		android:layout_alignParentRight="true"
+		android:layout_centerVertical="true"
+		android:layout_marginLeft="20dp"
+		android:src="@drawable/dark_chevron"
+		style="?android:attr/borderlessButtonStyle" />
 
 </RelativeLayout>

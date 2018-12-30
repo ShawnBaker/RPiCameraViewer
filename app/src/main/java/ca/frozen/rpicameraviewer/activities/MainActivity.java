@@ -18,8 +18,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.ContextMenu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -46,6 +44,7 @@ public class MainActivity extends AppCompatActivity
 	private Menu mainMenu = null;
 	private ConnectivityChangeReceiver receiver = null;
 	private int value = 43;
+	private boolean set_network = false;
 
 	//******************************************************************************
 	// onCreate
@@ -76,17 +75,60 @@ public class MainActivity extends AppCompatActivity
 			{
 				startScannerWithPermission();
 			}
+		}, new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View v)
+			{
+				Log.info("camera: edit");
+				Camera camera = (Camera)v.getTag();
+				startCameraActivity(camera);
+			}
 		});
 		adapter.refresh();
 		ListView listView = findViewById(R.id.cameras);
 		listView.setAdapter(adapter);
-		registerForContextMenu(listView);
 		listView.setOnItemClickListener(new AdapterView.OnItemClickListener()
 		{
 			@Override
 			public void onItemClick(AdapterView<?> adaptr, View view, int position, long id)
 			{
 				startVideoActivity(adapter.getCameras().get(position));
+			}
+		});
+
+		listView.setLongClickable(true);
+		listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener()
+		{
+			@Override
+			public boolean onItemLongClick(AdapterView<?> adaptr, View view, int position, long id)
+			{
+				Log.info("long press: delete");
+				final Camera camera = (Camera)view.getTag();
+				AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
+				alert.setMessage(R.string.ok_to_delete_camera);
+				alert.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener()
+				{
+					@Override
+					public void onClick(DialogInterface dialog, int which)
+					{
+						Log.info("long press: deleting camera " + camera.name);
+						Utils.getCameras().remove(camera);
+						updateCameras();
+						dialog.dismiss();
+					}
+				});
+				alert.setNegativeButton(R.string.no, new DialogInterface.OnClickListener()
+				{
+					@Override
+					public void onClick(DialogInterface dialog, int which)
+					{
+						dialog.dismiss();
+					}
+				});
+
+				alert.show();
+				return true;
 			}
 		});
 
@@ -190,7 +232,10 @@ public class MainActivity extends AppCompatActivity
 		item.setEnabled(adapter.getCameras().size() != 0);
 
 		// set the network name
-		setNetworkName();
+		if (!set_network)
+		{
+			setNetworkName();
+		}
 
 		return true;
 	}
@@ -220,6 +265,7 @@ public class MainActivity extends AppCompatActivity
 				}
 			}
 			Log.info("setNetworkName: " + item.getTitle().toString());
+			set_network = true;
 		}
 	}
 
@@ -325,74 +371,6 @@ public class MainActivity extends AppCompatActivity
         }
 
         return super.onOptionsItemSelected(item);
-	}
-
-	//******************************************************************************
-	// onCreateContextMenu
-	//******************************************************************************
-	@Override
-	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
-	{
-		if (v.getId() == R.id.cameras)
-		{
-			MenuInflater inflater = getMenuInflater();
-			inflater.inflate(R.menu.menu_main_list, menu);
-		}
-	}
-
-	//******************************************************************************
-	// onContextItemSelected
-	//******************************************************************************
-	@Override
-	public boolean onContextItemSelected(MenuItem item)
-	{
-		final Camera camera;
-		AdapterView.AdapterContextMenuInfo info;
-
-		switch (item.getItemId())
-		{
-			// edit the selected camera
-			case R.id.action_edit:
-				Log.info("context menu: edit");
-				info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
-				camera = adapter.getCameras().get(info.position);
-				startCameraActivity(camera);
-				return true;
-
-			// prompt the user to delete the selected camera
-			case R.id.action_delete:
-				Log.info("context menu: delete");
-				info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
-				camera = adapter.getCameras().get(info.position);
-				AlertDialog.Builder alert = new AlertDialog.Builder(this);
-				alert.setMessage(R.string.ok_to_delete_camera);
-				alert.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener()
-				{
-					@Override
-					public void onClick(DialogInterface dialog, int which)
-					{
-						Log.info("context menu: deleting camera " + camera.name);
-						Utils.getCameras().remove(camera);
-						updateCameras();
-						dialog.dismiss();
-					}
-				});
-				alert.setNegativeButton(R.string.no, new DialogInterface.OnClickListener()
-				{
-					@Override
-					public void onClick(DialogInterface dialog, int which)
-					{
-						dialog.dismiss();
-					}
-				});
-
-				alert.show();
-				return true;
-
-			// call the super
-			default:
-				return super.onContextItemSelected(item);
-		}
 	}
 
 	//******************************************************************************

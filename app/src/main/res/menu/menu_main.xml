@@ -6,7 +6,8 @@
 	  tools:context=".activities.MainActivity">
 
 	<item android:id="@+id/action_network"
-		  app:showAsAction="always|withText" />
+          android:title="@string/no_network"
+		  app:showAsAction="ifRoom|withText" />
 	<item android:id="@+id/action_scan"
 		  android:title="@string/scan"
 		  app:showAsAction="never" />

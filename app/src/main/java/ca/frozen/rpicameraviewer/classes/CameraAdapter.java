@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -24,15 +25,17 @@ public class CameraAdapter extends BaseAdapter
 	// instance variables
 	private List<Camera> cameras = new ArrayList<>();
 	private View.OnClickListener scanButtonOnClickListener;
+	private View.OnClickListener editButtonOnClickListener;
 	private boolean showNetwork = false;
 
 	//******************************************************************************
 	// refresh
 	//******************************************************************************
-	public CameraAdapter(View.OnClickListener onClickListener)
+	public CameraAdapter(View.OnClickListener scanClickListener, View.OnClickListener editClickListener)
 	{
 		super();
-		scanButtonOnClickListener = onClickListener;
+		scanButtonOnClickListener = scanClickListener;
+		editButtonOnClickListener = editClickListener;
 	}
 
 	//******************************************************************************
@@ -114,8 +117,12 @@ public class CameraAdapter extends BaseAdapter
 			if (camera != null)
 			{
 				// get the views
+				convertView.setTag(camera);
 				TextView name = convertView.findViewById(R.id.camera_name);
 				TextView address = convertView.findViewById(R.id.camera_address);
+				ImageButton edit = convertView.findViewById(R.id.camera_edit);
+				edit.setTag(camera);
+				edit.setOnClickListener(editButtonOnClickListener);
 
 				// set the views
 				name.setText(camera.name);
