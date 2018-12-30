@@ -1,4 +1,4 @@
-// Copyright © 2016-2017 Shawn Baker using the MIT License.
+// Copyright © 2016-2018 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
 import android.Manifest;
@@ -43,7 +43,6 @@ public class MainActivity extends AppCompatActivity
 
 	// instance variables
 	private CameraAdapter adapter;
-	private ScannerFragment scannerFragment;
 	private Menu mainMenu = null;
 	private ConnectivityChangeReceiver receiver = null;
 	private int value = 43;
@@ -66,7 +65,7 @@ public class MainActivity extends AppCompatActivity
 		Utils.loadData();
 
 		// create the toolbar
-		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+		Toolbar toolbar = findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
 
 		// set the list adapter
@@ -79,7 +78,7 @@ public class MainActivity extends AppCompatActivity
 			}
 		});
 		adapter.refresh();
-		ListView listView = (ListView)findViewById(R.id.cameras);
+		ListView listView = findViewById(R.id.cameras);
 		listView.setAdapter(adapter);
 		registerForContextMenu(listView);
 		listView.setOnItemClickListener(new AdapterView.OnItemClickListener()
@@ -92,13 +91,13 @@ public class MainActivity extends AppCompatActivity
 		});
 
 		// create the add button
-		FloatingActionButton addCameraButton = (FloatingActionButton) findViewById(R.id.add_camera);
+		FloatingActionButton addCameraButton = findViewById(R.id.add_camera);
 		addCameraButton.setOnClickListener(new View.OnClickListener()
 		{
 			@Override
 			public void onClick(View view)
 			{
-				Camera camera = new Camera(Utils.getNextCameraName(adapter.getCameras()), Utils.getSettings().rawTcpIpSource);
+				Camera camera = new Camera(Utils.getNextCameraName(adapter.getCameras()), Utils.getDefaultPort());
 				startCameraActivity(camera);
 			}
 		});
@@ -437,7 +436,7 @@ public class MainActivity extends AppCompatActivity
 	{
 		Log.info("startScanner");
 		FragmentManager fm = getFragmentManager();
-		scannerFragment = new ScannerFragment();
+		ScannerFragment scannerFragment = new ScannerFragment();
 		scannerFragment.show(fm, "Scanner");
 	}
 

@@ -1,9 +1,9 @@
-// Copyright © 2016 Shawn Baker using the MIT License.
+// Copyright © 2016-2018 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.classes;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
+//import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -11,33 +11,36 @@ import org.json.JSONObject;
 public class Camera implements Comparable, Parcelable
 {
 	// local constants
-	private final static String TAG = "Camera";
+	//private final static String TAG = "Camera";
 
 	// instance variables
 	public String network;
 	public String name;
-	public Source source;
+	public String address;
+	public int port;
 
 	//******************************************************************************
 	// Camera
 	//******************************************************************************
-    public Camera(Source.ConnectionType connectionType, String network, String address, int port)
-    {
+	public Camera(String network, String address, int port)
+	{
 		this.network = network;
-        this.name = "";
-		this.source = new Source(connectionType, address, port);
-		//Log.d(TAG, "address/source: " + toString());
+		this.name = "";
+		this.address = address;
+		this.port = port;
+		//Log.d(TAG, "net/addr/port: " + toString());
 	}
 
 	//******************************************************************************
 	// Camera
 	//******************************************************************************
-	public Camera(String name, Source source)
+	public Camera(String name, int port)
 	{
 		network = Utils.getNetworkName();
 		this.name = name;
-		this.source = new Source(source.connectionType, "", source.port);
-		//Log.d(TAG, "name/source: " + toString());
+		address = "";
+		this.port = port;
+		//Log.d(TAG, "name/port: " + toString());
 	}
 
 	//******************************************************************************
@@ -47,7 +50,8 @@ public class Camera implements Comparable, Parcelable
 	{
 		network = camera.network;
 		name = camera.name;
-		source = new Source(camera.source);
+		address = camera.name;
+		port = camera.port;
 		//Log.d(TAG, "camera: " + toString());
 	}
 
@@ -65,15 +69,38 @@ public class Camera implements Comparable, Parcelable
 	//******************************************************************************
 	public Camera(JSONObject obj)
 	{
+		// get the common values
 		try
 		{
 			network = obj.getString("network");
 			name = obj.getString("name");
-			source = new Source(obj.getJSONObject("source"));
 		}
 		catch (JSONException ex)
 		{
 			initialize();
+			return;
+		}
+
+		// get the new values
+		try
+		{
+			address = obj.getString("address");
+			port = obj.getInt("port");
+		}
+		catch (JSONException ex)
+		{
+			// get the old values
+			try
+			{
+				JSONObject source = obj.getJSONObject("source");
+				address = source.getString("address");
+				port = source.getInt("port");
+			}
+			catch (JSONException ex2)
+			{
+				address = "";
+				port = Settings.DEFAULT_PORT;
+			}
 		}
 		//Log.d(TAG, "json: " + toString());
 	}
@@ -85,8 +112,8 @@ public class Camera implements Comparable, Parcelable
 	{
 		network = Utils.getNetworkName();
 		name = Utils.getDefaultCameraName();
-		source = new Source(Utils.getSettings().rawTcpIpSource);
-		source.address = Utils.getBaseIpAddress();
+		address = Utils.getBaseIpAddress();
+		port = Utils.getDefaultPort();
 	}
 
 	//******************************************************************************
@@ -97,7 +124,8 @@ public class Camera implements Comparable, Parcelable
 	{
 		dest.writeString(network);
 		dest.writeString(name);
-		dest.writeParcelable(source, flags);
+		dest.writeString(address);
+		dest.writeInt(port);
 	}
 
 	//******************************************************************************
@@ -107,7 +135,8 @@ public class Camera implements Comparable, Parcelable
 	{
 		network = in.readString();
 		name = in.readString();
-		source = in.readParcelable(Source.class.getClassLoader());
+		address = in.readString();
+		port = in.readInt();
 	}
 
 	//******************************************************************************
@@ -155,10 +184,14 @@ public class Camera implements Comparable, Parcelable
 			result = name.compareTo(camera.name);
 			if (result == 0)
 			{
-				result = source.compareTo(camera.source);
+				result = address.compareTo(camera.address);
 				if (result == 0)
 				{
-					result = network.compareTo(camera.network);
+					result = port - camera.port;
+					if (result == 0)
+					{
+						result = network.compareTo(camera.network);
+					}
 				}
 			}
 		}
@@ -171,20 +204,21 @@ public class Camera implements Comparable, Parcelable
     @Override
     public String toString()
     {
-        return name + "," + network + "," + source.toString();
+        return name + "," + network + "," + address + "," + port;
     }
 
 	//******************************************************************************
 	// toJson
 	//******************************************************************************
-	public JSONObject toJson()
+	JSONObject toJson()
 	{
 		try
 		{
 			JSONObject obj = new JSONObject();
 			obj.put("network", network);
 			obj.put("name", name);
-			obj.put("source", source.toJson());
+			obj.put("address", address);
+			obj.put("port", port);
 			return obj;
 		}
 		catch(JSONException ex)
@@ -192,13 +226,5 @@ public class Camera implements Comparable, Parcelable
 			ex.printStackTrace();
 		}
 		return null;
-	}
-
-	//******************************************************************************
-	// getCombinedSource
-	//******************************************************************************
-	public Source getCombinedSource()
-	{
-		return Utils.getSettings().getSource(source.connectionType).combine(source);
 	}
 }

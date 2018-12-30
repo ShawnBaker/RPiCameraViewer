@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright © 2016 Shawn Baker using the MIT License. -->
+<!-- Copyright © 2016-2018 Shawn Baker using the MIT License. -->
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -16,25 +16,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical" >
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal" >
-
-            <TextView
-                android:text="@string/name"
-                android:layout_width="@dimen/prompt_width"
-                android:layout_height="wrap_content"
-                android:textSize="16sp" />
-
-            <EditText
-                android:id="@+id/camera_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="text|textCapWords" />
-
-        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -57,11 +38,69 @@
 
         </LinearLayout>
 
-        <fragment
-            android:name="ca.frozen.rpicameraviewer.activities.SourceFragment"
-            android:id="@+id/camera_source"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:text="@string/name"
+                android:layout_width="@dimen/prompt_width"
+                android:layout_height="wrap_content"
+                android:textSize="16sp" />
+
+            <EditText
+                android:id="@+id/camera_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text|textCapWords" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/source_address_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:id="@+id/source_address_prompt"
+                android:text="@string/address"
+                android:layout_width="@dimen/prompt_width"
+                android:layout_height="wrap_content"
+                android:textSize="16sp" />
+
+            <EditText
+                android:id="@+id/camera_address"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textUri"
+                android:textSize="16sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:text="@string/port"
+                android:layout_width="@dimen/prompt_width"
+                android:layout_height="wrap_content"
+                android:textSize="16sp" />
+
+            <EditText
+                android:id="@+id/camera_port"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="6"
+                android:maxEms="6"
+                android:maxLength="5"
+                android:inputType="number"
+                android:textSize="16sp" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

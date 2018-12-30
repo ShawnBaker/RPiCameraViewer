@@ -1,4 +1,4 @@
-// Copyright © 2016-2017 Shawn Baker using the MIT License.
+// Copyright © 2016-2018 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
 import android.os.Bundle;
@@ -29,16 +29,16 @@ public class AboutActivity extends AppCompatActivity
 		Utils.initLogFile(getClass().getSimpleName());
 
 		// set the views
-		ImageView icon = (ImageView)findViewById(R.id.about_icon);
+		ImageView icon = findViewById(R.id.about_icon);
 		icon.setImageResource(R.drawable.logo);
 
-		TextView text = (TextView)findViewById(R.id.about_title);
+		TextView text = findViewById(R.id.about_title);
 		text.setText(getString(R.string.app_name));
 
-		text = (TextView)findViewById(R.id.about_version);
-		text.setText(getString(R.string.version) + " " + BuildConfig.VERSION_NAME);
+		text = findViewById(R.id.about_version);
+		text.setText(String.format(getString(R.string.version), BuildConfig.VERSION_NAME));
 
-		text = (TextView)findViewById(R.id.about_license);
+		text = findViewById(R.id.about_license);
 		text.setMovementMethod(LinkMovementMethod.getInstance());
 	}
 

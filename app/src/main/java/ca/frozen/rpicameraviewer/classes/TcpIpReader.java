@@ -1,4 +1,4 @@
-// Copyright © 2016 Shawn Baker using the MIT License.
+// Copyright © 2016-2018 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.classes;
 
 import java.io.IOException;
@@ -8,7 +8,7 @@ import java.net.Socket;
 
 import ca.frozen.library.classes.Log;
 
-public class TcpIpReader extends RawH264Reader
+public class TcpIpReader
 {
 	// public constants
 	public final static int IO_TIMEOUT = 1000;
@@ -23,12 +23,11 @@ public class TcpIpReader extends RawH264Reader
 	//******************************************************************************
 	// TcpIpReader
 	//******************************************************************************
-	public TcpIpReader(Source source)
+	public TcpIpReader(Camera camera)
 	{
-		super(source);
 		try
 		{
-			socket = getConnection(source.address, source.port, CONNECT_TIMEOUT);
+			socket = getConnection(camera.address, camera.port, CONNECT_TIMEOUT);
 			socket.setSoTimeout(IO_TIMEOUT);
 			inputStream = socket.getInputStream();
 		}
@@ -55,7 +54,7 @@ public class TcpIpReader extends RawH264Reader
 	//******************************************************************************
 	public boolean isConnected()
 	{
-		return (socket != null) ? socket.isConnected() : false;
+		return (socket != null) && socket.isConnected();
 	}
 
 	//******************************************************************************
@@ -88,7 +87,7 @@ public class TcpIpReader extends RawH264Reader
 	//******************************************************************************
 	public static Socket getConnection(String baseAddress, int port, int timeout)
 	{
-		Socket socket = null;
+		Socket socket;
 		try
 		{
 			socket = new Socket();

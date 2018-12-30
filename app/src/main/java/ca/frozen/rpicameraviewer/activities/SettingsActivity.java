@@ -1,36 +1,26 @@
-// Copyright © 2016-2017 Shawn Baker using the MIT License.
+// Copyright © 2016-2018 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
-import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Spinner;
+import android.widget.Switch;
 
 import ca.frozen.library.classes.Log;
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.classes.Settings;
-import ca.frozen.rpicameraviewer.classes.Source;
 import ca.frozen.rpicameraviewer.classes.Utils;
 import ca.frozen.rpicameraviewer.R;
 
 public class SettingsActivity extends AppCompatActivity
 {
-	// public constants
-	public final static int FILTERED_CAMERAS = 0;
-	public final static int ALL_CAMERAS = 1;
-
-	// local constants
-	private final static int EDIT_SOURCE = 1;
-
 	// instance variables
 	private EditText cameraName;
-	private Spinner showCameras;
 	private EditText scanTimeout;
+	private EditText port;
+	private Switch showAllNetworks;
 	private Settings settings;
 
 	//******************************************************************************
@@ -52,44 +42,17 @@ public class SettingsActivity extends AppCompatActivity
 						: (Settings) savedInstanceState.getParcelable("settings");
 
 		// set the views
-		cameraName = (EditText) findViewById(R.id.settings_camera_name);
+		cameraName = findViewById(R.id.settings_camera_name);
 		cameraName.setText(settings.cameraName);
 
-		showCameras = (Spinner) findViewById(R.id.settings_show_cameras);
-		showCameras.setSelection(settings.showAllCameras ? ALL_CAMERAS : FILTERED_CAMERAS);
-
-		scanTimeout = (EditText) findViewById(R.id.settings_scan_timeout);
+		scanTimeout = findViewById(R.id.settings_scan_timeout);
 		scanTimeout.setText(Integer.toString(settings.scanTimeout));
 
-		Button button = (Button) findViewById(R.id.settings_tcp_ip);
-		button.setOnClickListener(new View.OnClickListener()
-		{
-			@Override
-			public void onClick(View v)
-			{
-				startSourceActivity(settings.rawTcpIpSource);
-			}
-		});
+		port = findViewById(R.id.settings_port);
+		port.setText(Integer.toString(settings.port));
 
-		button = (Button) findViewById(R.id.settings_http);
-		button.setOnClickListener(new View.OnClickListener()
-		{
-			@Override
-			public void onClick(View v)
-			{
-				startSourceActivity(settings.rawHttpSource);
-			}
-		});
-
-		button = (Button) findViewById(R.id.settings_multicast);
-		button.setOnClickListener(new View.OnClickListener()
-		{
-			@Override
-			public void onClick(View v)
-			{
-				startSourceActivity(settings.rawMulticastSource);
-			}
-		});
+		showAllNetworks = findViewById(R.id.settings_show_all_networks);
+		showAllNetworks.setChecked(settings.showAllCameras);
 	}
 
 	//******************************************************************************
@@ -99,38 +62,13 @@ public class SettingsActivity extends AppCompatActivity
 	protected void onSaveInstanceState(Bundle state)
 	{
 		settings.cameraName = cameraName.getText().toString().trim();
-		settings.showAllCameras = showCameras.getSelectedItemPosition() == ALL_CAMERAS;
-		String timeout = scanTimeout.getText().toString();
-		settings.scanTimeout = (timeout.length() > 0) ? Integer.parseInt(scanTimeout.getText().toString()) : Settings.DEFAULT_TIMEOUT;
+		String scanTimeoutString = scanTimeout.getText().toString();
+		settings.scanTimeout = scanTimeoutString.isEmpty() ? Settings.DEFAULT_TIMEOUT : Integer.parseInt(scanTimeoutString);
+		String portString = port.getText().toString();
+		settings.port = portString.isEmpty() ? Settings.DEFAULT_PORT : Integer.parseInt(portString);
+		settings.showAllCameras = showAllNetworks.isChecked();
 		state.putParcelable("settings", settings);
 		super.onSaveInstanceState(state);
-	}
-
-	//******************************************************************************
-	// onActivityResult
-	//******************************************************************************
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data)
-	{
-		if (requestCode == EDIT_SOURCE)
-		{
-			if (resultCode == RESULT_OK)
-			{
-				Source source = data.getParcelableExtra(SourceActivity.SOURCE);
-				switch (source.connectionType)
-				{
-					case RawTcpIp:
-						settings.rawTcpIpSource = source;
-						break;
-					case RawHttp:
-						settings.rawHttpSource = source;
-						break;
-					case RawMulticast:
-						settings.rawMulticastSource = source;
-						break;
-				}
-			}
-		}
 	}
 
 	//******************************************************************************
@@ -181,29 +119,25 @@ public class SettingsActivity extends AppCompatActivity
 		}
 
 		// get and check the scan timeout
-		String timeout = scanTimeout.getText().toString();
-		settings.scanTimeout = (timeout.length() > 0) ? Integer.parseInt(scanTimeout.getText().toString()) : (Settings.MAX_TIMEOUT + 1);
+		settings.scanTimeout = Utils.getNumber(scanTimeout);
 		if (settings.scanTimeout < Settings.MIN_TIMEOUT || settings.scanTimeout > Settings.MAX_TIMEOUT)
 		{
 			App.error(this, String.format(getString(R.string.error_bad_timeout), Settings.MIN_TIMEOUT, Settings.MAX_TIMEOUT));
 			return false;
 		}
 
+		// get and check the port
+		settings.port = Utils.getNumber(port);
+		if (settings.port < Settings.MIN_PORT || settings.port > Settings.MAX_PORT)
+		{
+			App.error(this, String.format(getString(R.string.error_bad_port), Settings.MIN_PORT, Settings.MAX_PORT));
+			return false;
+		}
+
 		// get the show all cameras flag
-		settings.showAllCameras = showCameras.getSelectedItemPosition() == ALL_CAMERAS;
+		settings.showAllCameras = showAllNetworks.isChecked();
 
 		// indicate success
 		return true;
-	}
-
-	//******************************************************************************
-	// startSourceActivity
-	//******************************************************************************
-	private void startSourceActivity(Source source)
-	{
-		Log.info("startSourceActivity: " + source.toString());
-		Intent intent = new Intent(getApplicationContext(), SourceActivity.class);
-		intent.putExtra(SourceActivity.SOURCE, source);
-		startActivityForResult(intent, EDIT_SOURCE);
 	}
 }

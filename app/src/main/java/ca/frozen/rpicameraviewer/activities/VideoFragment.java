@@ -1,4 +1,4 @@
-// Copyright © 2016-2017 Shawn Baker using the MIT License.
+// Copyright © 2016-2018 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
 import android.Manifest;
@@ -11,7 +11,6 @@ import android.graphics.SurfaceTexture;
 import android.media.MediaActionSound;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
@@ -38,10 +37,6 @@ import ca.frozen.library.views.ZoomPanTextureView;
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.R;
 import ca.frozen.rpicameraviewer.classes.Camera;
-import ca.frozen.rpicameraviewer.classes.HttpReader;
-import ca.frozen.rpicameraviewer.classes.MulticastReader;
-import ca.frozen.rpicameraviewer.classes.RawH264Reader;
-import ca.frozen.rpicameraviewer.classes.Source;
 import ca.frozen.rpicameraviewer.classes.SpsParser;
 import ca.frozen.rpicameraviewer.classes.TcpIpReader;
 import ca.frozen.rpicameraviewer.classes.Utils;
@@ -186,16 +181,16 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		View view = inflater.inflate(R.layout.fragment_video, container, false);
 
 		// configure the name
-		nameView = (TextView)view.findViewById(R.id.video_name);
+		nameView = view.findViewById(R.id.video_name);
 		nameView.setText(camera.name);
 
 		// initialize the message
-		messageView = (TextView)view.findViewById(R.id.video_message);
+		messageView = view.findViewById(R.id.video_message);
 		messageView.setTextColor(App.getClr(R.color.good_text));
 		messageView.setText(R.string.initializing_video);
 
 		// set the texture listener
-		textureView = (ZoomPanTextureView)view.findViewById(R.id.video_surface);
+		textureView = view.findViewById(R.id.video_surface);
 		textureView.setSurfaceTextureListener(this);
 		textureView.setZoomRange(MIN_ZOOM, MAX_ZOOM);
 		textureView.setOnTouchListener(new View.OnTouchListener()
@@ -220,7 +215,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		});
 
 		// create the snapshot button
-		snapshotButton = (Button)view.findViewById(R.id.video_snapshot);
+		snapshotButton = view.findViewById(R.id.video_snapshot);
 		snapshotButton.setOnClickListener(new View.OnClickListener()
 		{
 			@Override
@@ -467,9 +462,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	{
 		// local constants
 		private final static int FINISH_TIMEOUT = 5000;
-		private final static int MULTICAST_BUFFER_SIZE = 16384;
-		private final static int TCPIP_BUFFER_SIZE = 16384;
-		private final static int HTTP_BUFFER_SIZE = 4096;
+		private final static int BUFFER_SIZE = 16384;
 		private final static int NAL_SIZE_INC = 4096;
 		private final static int MAX_READ_ERRORS = 300;
 
@@ -478,20 +471,18 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		private MediaFormat format;
 		private boolean decoding = false;
 		private Surface surface;
-		private Source source = null;
 		private byte[] buffer = null;
 		private ByteBuffer[] inputBuffers = null;
 		private long presentationTime;
 		private long presentationTimeInc = 66666;
-		private RawH264Reader reader = null;
-		private WifiManager.MulticastLock multicastLock = null;
+		private TcpIpReader reader = null;
 		private Handler startVideoHandler;
 		private Runnable startVideoRunner;
 
 		//******************************************************************************
 		// setSurface
 		//******************************************************************************
-		public void setSurface(Surface surface, Handler handler, Runnable runner)
+		void setSurface(Surface surface, Handler handler, Runnable runner)
 		{
 			this.surface = surface;
 			this.startVideoHandler = handler;
@@ -532,7 +523,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		//******************************************************************************
 		// getMediaFormat
 		//******************************************************************************
-		public MediaFormat getMediaFormat()
+		MediaFormat getMediaFormat()
 		{
 			return format;
 		}
@@ -572,43 +563,18 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 
 			try
 			{
-				// get the multicast lock if necessary
-				if (camera.source.connectionType == Source.ConnectionType.RawMulticast)
-				{
-					WifiManager wifi = (WifiManager)getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-					if (wifi != null)
-					{
-						multicastLock = wifi.createMulticastLock("rpicamlock");
-						multicastLock.acquire();
-					}
-				}
-
 				// create the decoder
 				decoder = MediaCodec.createDecoderByType("video/avc");
 
 				// create the reader
-				source = camera.getCombinedSource();
-				if (source.connectionType == Source.ConnectionType.RawMulticast)
-				{
-					buffer = new byte[MULTICAST_BUFFER_SIZE];
-					reader = new MulticastReader(source);
-				}
-				else if (source.connectionType == Source.ConnectionType.RawHttp)
-				{
-					buffer = new byte[HTTP_BUFFER_SIZE];
-					reader = new HttpReader(source);
-				}
-				else
-				{
-					buffer = new byte[TCPIP_BUFFER_SIZE];
-					reader = new TcpIpReader(source);
-				}
+				buffer = new byte[BUFFER_SIZE];
+				reader = new TcpIpReader(camera);
 				if (!reader.isConnected())
 				{
 					throw new Exception();
 				}
 
-				// read from the source
+				// read until we're interrupted
 				while (!isInterrupted())
 				{
 					// read from the stream
@@ -719,20 +685,6 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 				catch (Exception ex) {}
 				decoder = null;
 			}
-
-			// release the multicast lock
-			if (multicastLock != null)
-			{
-				try
-				{
-					if (multicastLock.isHeld())
-					{
-						multicastLock.release();
-					}
-				}
-				catch (Exception ex) {}
-				multicastLock = null;
-			}
 		}
 
 		//******************************************************************************
@@ -748,24 +700,10 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 			if (nalType == 7 && !decoding)
 			{
 				SpsParser parser = new SpsParser(nal, nalLen);
-				int width = (source.width != 0) ? source.width : parser.width;
-				int height = (source.height != 0) ? source.height : parser.height;
-				format = MediaFormat.createVideoFormat("video/avc", width, height);
-				if (source.fps != 0)
-				{
-					format.setInteger(MediaFormat.KEY_FRAME_RATE, source.fps);
-					presentationTimeInc = 1000000 / source.fps;
-				}
-				else
-				{
-					presentationTimeInc = 66666;
-				}
+				format = MediaFormat.createVideoFormat("video/avc", parser.width, parser.height);
+				presentationTimeInc = 66666;
 				presentationTime = System.nanoTime() / 1000;
-				if (source.bps != 0)
-				{
-					format.setInteger(MediaFormat.KEY_BIT_RATE, source.bps);
-				}
-				Log.info(String.format("SPS: %02X, %d x %d, %d, %d, %d", nal[4], width, height, source.fps, source.bps, presentationTimeInc));
+				Log.info(String.format("SPS: %02X, %d x %d, %d", nal[4], parser.width, parser.height, presentationTimeInc));
 				decoder.configure(format, surface, null, 0);
 				setDecodingState(true);
 				inputBuffers = decoder.getInputBuffers();

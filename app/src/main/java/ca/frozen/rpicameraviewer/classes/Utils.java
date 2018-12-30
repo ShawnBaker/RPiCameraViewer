@@ -1,6 +1,7 @@
-// Copyright © 2016-2017 Shawn Baker using the MIT License.
+// Copyright © 2016-2018 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.classes;
 
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -16,6 +17,7 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.text.format.Formatter;
+import android.widget.EditText;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -50,10 +52,7 @@ public class Utils
 		if (settings == null)
 		{
 			Log.info("load settings");
-			if (preferences == null)
-			{
-				preferences = PreferenceManager.getDefaultSharedPreferences(App.getContext());
-			}
+			preferences = PreferenceManager.getDefaultSharedPreferences(App.getContext());
 			settings = null;
 			try
 			{
@@ -133,11 +132,8 @@ public class Utils
 		Log.info("saveData");
 		if (settings != null)
 		{
-			if (preferences == null)
-			{
-				preferences = PreferenceManager.getDefaultSharedPreferences(App.getContext());
-				editor = preferences.edit();
-			}
+			preferences = PreferenceManager.getDefaultSharedPreferences(App.getContext());
+			editor = preferences.edit();
 			JSONObject obj = settings.toJson();
 			editor.putString(App.getStr(R.string.settings_settings), obj.toString());
 		}
@@ -161,7 +157,7 @@ public class Utils
 		// commit the data
 		if (editor != null)
 		{
-			editor.commit();
+			editor.apply();
 		}
 	}
 
@@ -190,6 +186,15 @@ public class Utils
 	{
 		loadData();
 		return settings.cameraName;
+	}
+
+	//******************************************************************************
+	// getDefaultPort
+	//******************************************************************************
+	public static int getDefaultPort()
+	{
+		loadData();
+		return settings.port;
 	}
 
 	//******************************************************************************
@@ -291,16 +296,72 @@ public class Utils
 	}
 
 	//******************************************************************************
-	// getHttpAddress
+	// getOctet
 	//******************************************************************************
-	public static String getHttpAddress(String baseAddress)
+	public static int getOctet(String octetStr)
 	{
-		String address = baseAddress;
-		if (!address.startsWith("http://"))
+		int value = -1;
+		try
 		{
-			address = "http://" + address;
+			value = Integer.parseInt(octetStr);
+			if (value < 0 || value > 255)
+			{
+				value = -1;
+			}
 		}
-		return address;
+		catch (Exception ec)
+		{
+		}
+		return value;
+	}
+
+	//******************************************************************************
+	// checkIpAddress
+	//******************************************************************************
+	public static boolean checkIpAddress(String address)
+	{
+		String octets[] = address.split("\\.");
+		boolean result = false;
+		if (octets.length == 4)
+		{
+			int octet1, octet2, octet3, octet4;
+			try
+			{
+				octet1 = getOctet(octets[0]);
+				octet2 = getOctet(octets[1]);
+				octet3 = getOctet(octets[2]);
+				octet4 = getOctet(octets[3]);
+				if (octet1 >= 0 && octet2 >= 0 && octet3 >= 0 && octet4 >= 0)
+				{
+					result = true;
+				}
+			}
+			catch (Exception ec)
+			{
+			}
+		}
+		return result;
+	}
+
+	//******************************************************************************
+	// getNumber
+	//******************************************************************************
+	public static int getNumber(EditText edit)
+	{
+		int value = 0;
+		String text = edit.getText().toString().trim();
+		if (text.length() > 0)
+		{
+			try
+			{
+				value = Integer.parseInt(text);
+			}
+			catch (Exception ex)
+			{
+				value = -1;
+			}
+		}
+		return value;
 	}
 
 	//******************************************************************************
@@ -406,8 +467,8 @@ public class Utils
 	public static String saveImage(ContentResolver contentResolver, Bitmap source,
 								   String title, String description)
 	{
-		File snapshot = null;
-		Uri url = null;
+		File snapshot;
+		Uri url;
 		try
 		{
 			// get/create the snapshots folder

@@ -58,12 +58,6 @@
             android:parentActivityName=".activities.MainActivity" >
         </activity>
         <activity
-            android:name=".activities.SourceActivity"
-            android:label="@string/source"
-            android:theme="@style/AppBackAsCancelTheme"
-            android:parentActivityName=".activities.SettingsActivity" >
-        </activity>
-        <activity
             android:name=".activities.VideoActivity"
             android:label="@string/video"
             android:theme="@style/AppFullScreenTheme"

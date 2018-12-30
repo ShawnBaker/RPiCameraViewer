@@ -1,4 +1,4 @@
-// Copyright © 2016-2017 Shawn Baker using the MIT License.
+// Copyright © 2016-2018 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
 import android.os.Bundle;
@@ -18,7 +18,6 @@ public class VideoActivity extends AppCompatActivity implements VideoFragment.On
 	public final static String CAMERA = "camera";
 
 	// instance variables
-	private Camera camera;
 	private FrameLayout frameLayout;
 	private VideoFragment videoFragment;
 
@@ -40,11 +39,11 @@ public class VideoActivity extends AppCompatActivity implements VideoFragment.On
 
 		// get the camera object
 		Bundle data = getIntent().getExtras();
-		camera = data.getParcelable(CAMERA);
+		Camera camera = data.getParcelable(CAMERA);
 		Log.info("camera: " + camera.toString());
 
 		// get the frame layout, handle system visibility changes
-		frameLayout = (FrameLayout) findViewById(R.id.video);
+		frameLayout = findViewById(R.id.video);
 		frameLayout.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener()
 		{
 			@Override
@@ -63,7 +62,7 @@ public class VideoActivity extends AppCompatActivity implements VideoFragment.On
 		frameLayout.setSystemUiVisibility(visibility);
 
 		// create the video fragment
-		videoFragment = videoFragment.newInstance(camera, true);
+		videoFragment = VideoFragment.newInstance(camera, true);
 		FragmentTransaction fragTran = getSupportFragmentManager().beginTransaction();
 		fragTran.add(R.id.video, videoFragment);
 		fragTran.commit();

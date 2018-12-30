@@ -1,8 +1,9 @@
-// Copyright © 2016 Shawn Baker using the MIT License.
+// Copyright © 2016-2018 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.classes;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+//import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,22 +17,23 @@ public class Settings implements Parcelable
 	public final static int MIN_TIMEOUT = 100;
 	public final static int MAX_TIMEOUT = 5000;
 	public final static int DEFAULT_TIMEOUT = 500;
+	public final static int MIN_PORT = 1024;
+	public final static int MAX_PORT = 65535;
+	public final static int DEFAULT_PORT = 5001;
 
 	// local constants
-	private final static String TAG = "Settings";
+	//private final static String TAG = "Settings";
 
 	// instance variables
 	public String cameraName;
 	public boolean showAllCameras;
 	public int scanTimeout;
-	public Source rawTcpIpSource;
-	public Source rawHttpSource;
-	public Source rawMulticastSource;
+	public int port;
 
 	//******************************************************************************
 	// Settings
 	//******************************************************************************
-	public Settings()
+	Settings()
 	{
 		initialize();
 		//Log.d(TAG, "init: " + toString());
@@ -40,7 +42,7 @@ public class Settings implements Parcelable
 	//******************************************************************************
 	// Settings
 	//******************************************************************************
-	public Settings(Parcel in)
+	private Settings(Parcel in)
 	{
 		readFromParcel(in);
 		//Log.d(TAG, "parcel: " + toString());
@@ -54,29 +56,45 @@ public class Settings implements Parcelable
 		cameraName = settings.cameraName;
 		showAllCameras = settings.showAllCameras;
 		scanTimeout = settings.scanTimeout;
-		rawTcpIpSource = new Source(settings.rawTcpIpSource);
-		rawHttpSource = new Source(settings.rawHttpSource);
-		rawMulticastSource = new Source(settings.rawMulticastSource);
+		port = settings.port;
 		//Log.d(TAG, "settings: " + toString());
 	}
 
 	//******************************************************************************
 	// Settings
 	//******************************************************************************
-	public Settings(JSONObject obj)
+	Settings(JSONObject obj)
 	{
+		// get the common values
 		try
 		{
 			cameraName = obj.getString("cameraName");
 			showAllCameras = obj.getBoolean("showAllCameras");
 			scanTimeout = obj.getInt("scanTimeout");
-			rawTcpIpSource = new Source(obj.getJSONObject("rawTcpIpSource"));
-			rawHttpSource = new Source(obj.getJSONObject("rawHttpSource"));
-			rawMulticastSource = new Source(obj.getJSONObject("rawMulticastSource"));
 		}
 		catch (JSONException ex)
 		{
 			initialize();
+			return;
+		}
+
+		// get the new values
+		try
+		{
+			port = obj.getInt("port");
+		}
+		catch (JSONException ex)
+		{
+			// get the old values
+			try
+			{
+				JSONObject source = obj.getJSONObject("rawTcpIpSource");
+				port = source.getInt("port");
+			}
+			catch (JSONException ex2)
+			{
+				port = Settings.DEFAULT_PORT;
+			}
 		}
 		//Log.d(TAG, "json: " + toString());
 	}
@@ -89,19 +107,7 @@ public class Settings implements Parcelable
 		cameraName = App.getStr(R.string.camera);
 		showAllCameras = false;
 		scanTimeout = DEFAULT_TIMEOUT;
-
-		rawTcpIpSource = new Source(Source.ConnectionType.RawTcpIp, "", App.getInt(R.integer.default_tcpip_port));
-		rawTcpIpSource.fps = App.getInt(R.integer.default_fps);
-		rawTcpIpSource.bps = App.getInt(R.integer.default_bps);
-
-		rawHttpSource = new Source(Source.ConnectionType.RawHttp, "", App.getInt(R.integer.default_http_port));
-		rawHttpSource.fps = App.getInt(R.integer.default_fps);
-		rawHttpSource.bps = App.getInt(R.integer.default_bps);
-
-		rawMulticastSource = new Source(Source.ConnectionType.RawMulticast, App.getStr(R.string.default_multicast_address),
-										App.getInt(R.integer.default_multicast_port));
-		rawMulticastSource.fps = App.getInt(R.integer.default_fps);
-		rawMulticastSource.bps = App.getInt(R.integer.default_bps);
+		port = DEFAULT_PORT;
 	}
 
 	//******************************************************************************
@@ -113,9 +119,7 @@ public class Settings implements Parcelable
 		dest.writeString(cameraName);
 		dest.writeInt(showAllCameras ? 1 : 0);
 		dest.writeInt(scanTimeout);
-		dest.writeParcelable(rawTcpIpSource, flags);
-		dest.writeParcelable(rawHttpSource, flags);
-		dest.writeParcelable(rawMulticastSource, flags);
+		dest.writeInt(port);
 	}
 
 	//******************************************************************************
@@ -126,9 +130,7 @@ public class Settings implements Parcelable
 		cameraName = in.readString();
 		showAllCameras = in.readInt() != 0;
 		scanTimeout = in.readInt();
-		rawTcpIpSource = in.readParcelable(Source.class.getClassLoader());
-		rawHttpSource = in.readParcelable(Source.class.getClassLoader());
-		rawMulticastSource = in.readParcelable(Source.class.getClassLoader());
+		port = in.readInt();
 	}
 
 	//******************************************************************************
@@ -155,36 +157,18 @@ public class Settings implements Parcelable
 	};
 
 	//******************************************************************************
-	// getSource
-	//******************************************************************************
-	public Source getSource(Source.ConnectionType type)
-	{
-		switch (type)
-		{
-			case RawTcpIp:
-				return rawTcpIpSource;
-			case RawHttp:
-				return rawHttpSource;
-			case RawMulticast:
-				return rawMulticastSource;
-		}
-		return null;
-	}
-
-	//******************************************************************************
 	// toString
 	//******************************************************************************
 	@Override
 	public String toString()
 	{
-		return cameraName + "," + showAllCameras + "," + scanTimeout + "," + rawTcpIpSource.toString() +
-				"," + rawHttpSource.toString() + "," + rawMulticastSource.toString();
+		return cameraName + "," + showAllCameras + "," + scanTimeout + "," + port;
 	}
 
 	//******************************************************************************
 	// toJson
 	//******************************************************************************
-	public JSONObject toJson()
+	JSONObject toJson()
 	{
 		try
 		{
@@ -192,9 +176,7 @@ public class Settings implements Parcelable
 			obj.put("cameraName", cameraName);
 			obj.put("showAllCameras", showAllCameras);
 			obj.put("scanTimeout", scanTimeout);
-			obj.put("rawTcpIpSource", rawTcpIpSource.toJson());
-			obj.put("rawHttpSource", rawHttpSource.toJson());
-			obj.put("rawMulticastSource", rawMulticastSource.toJson());
+			obj.put("port", port);
 			return obj;
 		}
 		catch(JSONException ex)

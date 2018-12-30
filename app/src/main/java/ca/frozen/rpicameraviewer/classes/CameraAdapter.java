@@ -1,8 +1,7 @@
-// Copyright © 2016 Shawn Baker using the MIT License.
+// Copyright © 2016-2018 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.classes;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,7 +23,7 @@ public class CameraAdapter extends BaseAdapter
 
 	// instance variables
 	private List<Camera> cameras = new ArrayList<>();
-	private View.OnClickListener scanButtonOnClickListener = null;
+	private View.OnClickListener scanButtonOnClickListener;
 	private boolean showNetwork = false;
 
 	//******************************************************************************
@@ -112,26 +111,23 @@ public class CameraAdapter extends BaseAdapter
 		{
 			// get the camera for this row
 			Camera camera = getItem(position);
-
-			// get the views
-			TextView name = (TextView) convertView.findViewById(R.id.camera_name);
-			TextView address = (TextView) convertView.findViewById(R.id.camera_address);
-
-			// set the views
-			Source source = camera.getCombinedSource();
-			name.setText(camera.name);
-			String fullAddress = Utils.getFullAddress(source.address, source.port);
-			if (source.connectionType == Source.ConnectionType.RawHttp)
+			if (camera != null)
 			{
-				fullAddress = Utils.getHttpAddress(fullAddress);
+				// get the views
+				TextView name = convertView.findViewById(R.id.camera_name);
+				TextView address = convertView.findViewById(R.id.camera_address);
+
+				// set the views
+				name.setText(camera.name);
+				String fullAddress = Utils.getFullAddress(camera.address, camera.port);
+				address.setText((showNetwork ? (camera.network + ":") : "") + fullAddress);
 			}
-			address.setText((showNetwork ? (camera.network + ":") : "") + fullAddress);
 		}
 		else
 		{
-			TextView msg = (TextView) convertView.findViewById(R.id.message_text);
+			TextView msg = convertView.findViewById(R.id.message_text);
 			msg.setText(R.string.no_cameras);
-			Button scan = (Button) convertView.findViewById(R.id.message_scan);
+			Button scan = convertView.findViewById(R.id.message_scan);
 			scan.setOnClickListener(scanButtonOnClickListener);
 		}
 

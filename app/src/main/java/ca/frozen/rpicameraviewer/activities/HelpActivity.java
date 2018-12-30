@@ -1,4 +1,4 @@
-// Copyright © 2016-2017 Shawn Baker using the MIT License.
+// Copyright © 2016-2018 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
 import android.os.Bundle;
@@ -27,7 +27,7 @@ public class HelpActivity extends AppCompatActivity
 		Utils.initLogFile(getClass().getSimpleName());
 
 		// set the views
-		TextView text = (TextView)findViewById(R.id.help_info);
+		TextView text = findViewById(R.id.help_info);
 		text.setMovementMethod(LinkMovementMethod.getInstance());
 	}
 

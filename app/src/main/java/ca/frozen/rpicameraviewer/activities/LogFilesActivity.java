@@ -1,4 +1,4 @@
-// Copyright © 2017 Shawn Baker using the MIT License.
+// Copyright © 2017-2018 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
 import android.app.AlertDialog;
@@ -51,9 +51,9 @@ public class LogFilesActivity extends AppCompatActivity
 		Utils.initLogFile(getClass().getSimpleName());
 
 		// get the views
-		listView = (ListView)findViewById(R.id.log_list);
-		file1Button = (Button)findViewById(R.id.log_file_1);
-		file2Button = (Button)findViewById(R.id.log_file_2);
+		listView = findViewById(R.id.log_list);
+		file1Button = findViewById(R.id.log_file_1);
+		file2Button = findViewById(R.id.log_file_2);
 
 		// handle the file 1 button
 		file1Button.setOnClickListener(new View.OnClickListener()
@@ -76,7 +76,7 @@ public class LogFilesActivity extends AppCompatActivity
 		});
 
 		// handle the clear button
-		Button clearButton = (Button)findViewById(R.id.log_file_clear);
+		Button clearButton = findViewById(R.id.log_file_clear);
 		clearButton.setOnClickListener(new View.OnClickListener()
 		{
 			@Override
@@ -87,7 +87,7 @@ public class LogFilesActivity extends AppCompatActivity
 		});
 
 		// handle the email button
-		Button emailButton = (Button)findViewById(R.id.log_file_email);
+		Button emailButton = findViewById(R.id.log_file_email);
 		emailButton.setOnClickListener(new View.OnClickListener()
 		{
 			@Override
@@ -242,7 +242,7 @@ public class LogFilesActivity extends AppCompatActivity
 		//******************************************************************************
 		// LogFileLoader
 		//******************************************************************************
-		public LogFileLoader(File logFile, int noFileId)
+		LogFileLoader(File logFile, int noFileId)
 		{
 			this.logFile = logFile;
 			this.noFileId = noFileId;

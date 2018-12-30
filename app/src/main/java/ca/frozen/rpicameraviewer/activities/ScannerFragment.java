@@ -1,4 +1,4 @@
-// Copyright © 2016-2017 Shawn Baker using the MIT License.
+// Copyright © 2016-2018 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
 import android.app.Dialog;
@@ -8,7 +8,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,9 +16,7 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import java.io.InputStream;
 import java.lang.ref.WeakReference;
-import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,9 +26,7 @@ import java.util.List;
 import ca.frozen.library.classes.Log;
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.classes.Camera;
-import ca.frozen.rpicameraviewer.classes.HttpReader;
 import ca.frozen.rpicameraviewer.classes.Settings;
-import ca.frozen.rpicameraviewer.classes.Source;
 import ca.frozen.rpicameraviewer.classes.TcpIpReader;
 import ca.frozen.rpicameraviewer.classes.Utils;
 import ca.frozen.rpicameraviewer.R;
@@ -77,10 +72,10 @@ public class ScannerFragment extends DialogFragment
 	{
 		// get the controls
 		View view = inflater.inflate(R.layout.fragment_scanner, container, false);
-		message = (TextView)view.findViewById(R.id.scanner_message);
-		status = (TextView)view.findViewById(R.id.scanner_status);
-		progress = (ProgressBar)view.findViewById(R.id.scanner_progress);
-		cancelButton = (Button)view.findViewById(R.id.scanner_cancel);
+		message = view.findViewById(R.id.scanner_message);
+		status = view.findViewById(R.id.scanner_status);
+		progress = view.findViewById(R.id.scanner_progress);
+		cancelButton = view.findViewById(R.id.scanner_cancel);
 
 		// configure the dialog
 		Dialog dialog = getDialog();
@@ -232,48 +227,22 @@ public class ScannerFragment extends DialogFragment
 								doneDevice(dev);
 								continue;
 							}
-							boolean found = false;
 							String address = baseAddress + Integer.toString(dev);
 
 							// look for a TCP/IP connection
 							try
 							{
 								// try to connect to the device
-								Socket socket = TcpIpReader.getConnection(address, settings.rawTcpIpSource.port, settings.scanTimeout);
+								Socket socket = TcpIpReader.getConnection(address, settings.port, settings.scanTimeout);
 								if (socket != null)
 								{
-									Camera camera = new Camera(Source.ConnectionType.RawTcpIp, network, address, settings.rawTcpIpSource.port);
+									Camera camera = new Camera(network, address, settings.port);
 									addCamera(camera);
 									socket.close();
-									found = true;
 								}
 							}
 							catch (Exception ex) {}
 
-							// look for an HTTP connection
-							if (!found)
-							{
-								try
-								{
-									HttpURLConnection http = HttpReader.getConnection(address, settings.rawHttpSource.port, settings.scanTimeout);
-									if (http != null)
-									{
-										InputStream stream = http.getInputStream();
-										byte[] buffer = new byte[1024];
-										int len = stream.read(buffer);
-										String page = new String(buffer, 0, len);
-										if (page.contains("UV4L Streaming Server"))
-										{
-											address += "/stream/video.h264";
-											Camera camera = new Camera(Source.ConnectionType.RawHttp, network, address, settings.rawHttpSource.port);
-											addCamera(camera);
-											http.disconnect();
-											found = true;
-										}
-									}
-								}
-								catch (Exception ex) {}
-							}
 							doneDevice(dev);
 						}
 					}
@@ -342,8 +311,8 @@ public class ScannerFragment extends DialogFragment
 				@Override
 				public int compare(Camera camera1, Camera camera2)
 				{
-					int octet1 = getLastOctet(camera1.source.address);
-					int octet2 = getLastOctet(camera2.source.address);
+					int octet1 = getLastOctet(camera1.address);
+					int octet2 = getLastOctet(camera2.address);
 					return octet1 - octet2;
 				}
 			});
@@ -401,8 +370,7 @@ public class ScannerFragment extends DialogFragment
 			boolean found = false;
 			for (Camera camera : cameras)
 			{
-				if (newCamera.source.address.equals(camera.source.address) &&
-					newCamera.source.port == camera.source.port)
+				if (newCamera.address.equals(camera.address) && newCamera.port == camera.port)
 				{
 					found = true;
 					break;
@@ -410,7 +378,7 @@ public class ScannerFragment extends DialogFragment
 			}
 			if (!found)
 			{
-				Log.info("addCamera: " + newCamera.source.toString());
+				Log.info("addCamera: " + newCamera.toString());
 				newCameras.add(newCamera);
 			}
 		}
@@ -442,8 +410,7 @@ public class ScannerFragment extends DialogFragment
 		//******************************************************************************
 		private synchronized void setStatus(boolean last)
 		{
-			message.setText(String.format(getString(R.string.scanning_on_ports),
-							settings.rawTcpIpSource.port, settings.rawHttpSource.port));
+			message.setText(String.format(getString(R.string.scanning_on_port), settings.port));
 			progress.setProgress(numDone);
 			status.setText(String.format(getString(R.string.num_new_cameras_found), newCameras.size()));
 			if (newCameras.size() > 0)
@@ -480,7 +447,7 @@ public class ScannerFragment extends DialogFragment
 		//******************************************************************************
 		// isComplete
 		//******************************************************************************
-		public boolean isComplete()
+		boolean isComplete()
 		{
 			return device == 255;
 		}
