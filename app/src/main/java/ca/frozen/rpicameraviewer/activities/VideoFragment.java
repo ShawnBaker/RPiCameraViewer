@@ -5,9 +5,9 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
+import android.hardware.display.DisplayManager;
 import android.media.MediaActionSound;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.Surface;
@@ -68,7 +69,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	private DecoderThread decoder;
 	private ZoomPanTextureView textureView;
 	private TextView nameView, messageView;
-	private Button snapshotButton;
+	private Button closeButton, snapshotButton;
 	private Runnable fadeInRunner, fadeOutRunner, finishRunner, startVideoRunner;
 	private Handler fadeInHandler, fadeOutHandler, finishHandler, startVideoHandler;
 	private OnFadeListener fadeListener;
@@ -122,6 +123,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 				fadeInSnapshot.setDuration(FADEIN_ANIMATION_TIME);
 				fadeInSnapshot.setFillAfter(true);
 				nameView.startAnimation(fadeInName);
+				closeButton.startAnimation(fadeInSnapshot);
 				snapshotButton.startAnimation(fadeInSnapshot);
 				fadeListener.onStartFadeIn();
 			}
@@ -141,6 +143,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 				fadeOutSnapshot.setDuration(FADEOUT_ANIMATION_TIME);
 				fadeOutSnapshot.setFillAfter(true);
 				nameView.startAnimation(fadeOutName);
+				closeButton.startAnimation(fadeOutSnapshot);
 				snapshotButton.startAnimation(fadeOutSnapshot);
 				fadeListener.onStartFadeOut();
 			}
@@ -170,6 +173,33 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 				textureView.setVideoSize(videoWidth, videoHeight);
 			}
 		};
+
+		if (fullScreen)
+		{
+			DisplayManager.DisplayListener displayListener = new DisplayManager.DisplayListener()
+			{
+				@Override
+				public void onDisplayAdded(int displayId)
+				{
+					Log.info("Display #" + displayId + " added.");
+				}
+
+				@Override
+				public void onDisplayChanged(int displayId)
+				{
+					Log.info("Display #" + displayId + " changed.");
+					setControlMargins();
+				}
+
+				@Override
+				public void onDisplayRemoved(int displayId)
+				{
+					Log.info("Display #" + displayId + " removed.");
+				}
+			};
+			DisplayManager displayManager = (DisplayManager)getActivity().getSystemService(Context.DISPLAY_SERVICE);
+			displayManager.registerDisplayListener(displayListener, null);
+		}
 	}
 
 	//******************************************************************************
@@ -214,7 +244,19 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 			}
 		});
 
-		// create the snapshot button
+		// create the close button listener
+		closeButton = view.findViewById(R.id.video_close);
+		closeButton.setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View view)
+			{
+				stop();
+				getActivity().finish();
+			}
+		});
+
+		// create the snapshot button listener
 		snapshotButton = view.findViewById(R.id.video_snapshot);
 		snapshotButton.setOnClickListener(new View.OnClickListener()
 		{
@@ -235,14 +277,10 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 			}
 		});
 
-		// move the snapshot button over to account for the navigation bar
+		// adjust the controls to account for the navigation and status bars
 		if (fullScreen)
 		{
-			float scale = getContext().getResources().getDisplayMetrics().density;
-			int margin = (int)(5 * scale + 0.5f);
-			int extra = Utils.getNavigationBarHeight(getContext(), Configuration.ORIENTATION_LANDSCAPE);
-			ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams)snapshotButton.getLayoutParams();
-			lp.setMargins(margin, margin, margin + extra, margin);
+			setControlMargins();
 		}
 
 		return view;
@@ -381,6 +419,42 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	@Override
 	public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture)
 	{
+	}
+
+	//******************************************************************************
+	// setControlMargins
+	//******************************************************************************
+	public void setControlMargins()
+	{
+		Activity activity = getActivity();
+		if (activity != null)
+		{
+			// get the margins accounting for the navigation and status bars
+			Display display = activity.getWindowManager().getDefaultDisplay();
+			float scale = getContext().getResources().getDisplayMetrics().density;
+			int margin = (int)(5 * scale + 0.5f);
+			int extra = Utils.getNavigationBarWidth(getContext());
+			int rotation = display.getRotation();
+			int leftMargin = margin;
+			int rightMargin = margin;
+			if (rotation == Surface.ROTATION_180 || rotation == Surface.ROTATION_270)
+			{
+				leftMargin += extra;
+			}
+			else
+			{
+				rightMargin += extra;
+			}
+			int topMargin = margin + Utils.getStatusBarHeight(getContext());
+
+			// set the control margins
+			ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams)closeButton.getLayoutParams();
+			lp.setMargins(leftMargin, topMargin, rightMargin, margin);
+			lp = (ViewGroup.MarginLayoutParams)snapshotButton.getLayoutParams();
+			lp.setMargins(leftMargin, margin, rightMargin, margin);
+			lp = (ViewGroup.MarginLayoutParams)nameView.getLayoutParams();
+			lp.setMargins(leftMargin, margin, rightMargin, margin);
+		}
 	}
 
 	//******************************************************************************

@@ -514,13 +514,22 @@ public class Utils
 	}
 
 	//******************************************************************************
-	// getNavigationBarHeight
+	// getNavigationBarWidth
 	//******************************************************************************
-	public static int getNavigationBarHeight(Context context, int orientation)
+	public static int getNavigationBarWidth(Context context)
 	{
 		Resources resources = context.getResources();
-		String name = orientation == Configuration.ORIENTATION_PORTRAIT ? "navigation_bar_height" : "navigation_bar_height_landscape";
-		int id = resources.getIdentifier(name, "dimen", "android");
+		int id = resources.getIdentifier("navigation_bar_height_landscape", "dimen", "android");
+		return (id > 0) ?resources.getDimensionPixelSize(id) : 0;
+	}
+
+	//******************************************************************************
+	// getStatusBarHeight
+	//******************************************************************************
+	public static int getStatusBarHeight(Context context)
+	{
+		Resources resources = context.getResources();
+		int id = resources.getIdentifier("status_bar_height", "dimen", "android");
 		return (id > 0) ?resources.getDimensionPixelSize(id) : 0;
 	}
 
