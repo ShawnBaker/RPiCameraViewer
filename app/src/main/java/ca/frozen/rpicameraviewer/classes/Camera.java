@@ -8,7 +8,7 @@ import android.os.Parcelable;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Camera implements Comparable, Parcelable
+public class Camera implements Comparable<Camera>, Parcelable
 {
 	// local constants
 	//private final static String TAG = "Camera";
@@ -168,19 +168,22 @@ public class Camera implements Comparable, Parcelable
     @Override
     public boolean equals(Object otherCamera)
     {
-		return compareTo(otherCamera) == 0;
+		if (otherCamera instanceof Camera)
+		{
+			return compareTo((Camera)otherCamera) == 0;
+		}
+		return false;
     }
 
 	//******************************************************************************
 	// compareTo
 	//******************************************************************************
     @Override
-    public int compareTo(Object otherCamera)
+    public int compareTo(Camera camera)
     {
 		int result = 1;
-		if (otherCamera instanceof Camera)
+		if (camera != null)
 		{
-			Camera camera = (Camera) otherCamera;
 			result = name.compareTo(camera.name);
 			if (result == 0)
 			{
