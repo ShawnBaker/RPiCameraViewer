@@ -1,12 +1,10 @@
 // Copyright © 2016-2018 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.classes;
 
-import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.net.NetworkInfo;
@@ -296,54 +294,6 @@ public class Utils
 	}
 
 	//******************************************************************************
-	// getOctet
-	//******************************************************************************
-	public static int getOctet(String octetStr)
-	{
-		int value = -1;
-		try
-		{
-			value = Integer.parseInt(octetStr);
-			if (value < 0 || value > 255)
-			{
-				value = -1;
-			}
-		}
-		catch (Exception ec)
-		{
-		}
-		return value;
-	}
-
-	//******************************************************************************
-	// checkIpAddress
-	//******************************************************************************
-	public static boolean checkIpAddress(String address)
-	{
-		String octets[] = address.split("\\.");
-		boolean result = false;
-		if (octets.length == 4)
-		{
-			int octet1, octet2, octet3, octet4;
-			try
-			{
-				octet1 = getOctet(octets[0]);
-				octet2 = getOctet(octets[1]);
-				octet3 = getOctet(octets[2]);
-				octet4 = getOctet(octets[3]);
-				if (octet1 >= 0 && octet2 >= 0 && octet3 >= 0 && octet4 >= 0)
-				{
-					result = true;
-				}
-			}
-			catch (Exception ec)
-			{
-			}
-		}
-		return result;
-	}
-
-	//******************************************************************************
 	// getNumber
 	//******************************************************************************
 	public static int getNumber(EditText edit)
@@ -365,9 +315,9 @@ public class Utils
 	}
 
 	//******************************************************************************
-	// getWifiName
+	// getNetworkName
 	//******************************************************************************
-	public static String getWifiName()
+	public static String getNetworkName()
 	{
 		String ssid = "";
 		WifiManager manager = (WifiManager)App.getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
@@ -393,36 +343,12 @@ public class Utils
 	}
 
 	//******************************************************************************
-	// connectedToWifi
-	//******************************************************************************
-	public static boolean connectedToWifi()
-	{
-		String name = getWifiName();
-		return name != null && !name.isEmpty();
-	}
-
-	//******************************************************************************
 	// connectedToNetwork
 	//******************************************************************************
 	public static boolean connectedToNetwork()
 	{
-		boolean connected = connectedToWifi();
-		if (!connected)
-		{
-		}
-		return connected;
-	}
-
-	//******************************************************************************
-	// getNetworkName
-	//******************************************************************************
-	public static String getNetworkName()
-	{
-		String name = getWifiName();
-		if (name == null || name.isEmpty())
-		{
-		}
-		return name;
+		String name = getNetworkName();
+		return name != null && !name.isEmpty();
 	}
 
 	//******************************************************************************
