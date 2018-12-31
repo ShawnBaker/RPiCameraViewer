@@ -10,13 +10,8 @@
     <string name="cancel">Cancel</string>
     <string name="clear">Clear</string>
     <string name="closing_video">Closing video connection...</string>
-    <string name="continue1">Continue</string>
-    <string name="default_camera_name">Default Camera Name</string>
-    <string name="default_port">Default Port</string>
-    <string name="delete">Delete</string>
     <string name="delete_all">Delete All</string>
     <string name="done">Done</string>
-    <string name="edit">Edit</string>
     <string name="email">Email</string>
     <string name="email_address">support@frozen.ca</string>
     <string name="email_log_files">Email Log Files</string>
@@ -34,7 +29,6 @@
     <string name="file_1">File 1</string>
     <string name="file_2">File 2</string>
     <string name="file_provider">ca.frozen.rpicameraviewer.fileprovider</string>
-    <string name="general">General</string>
     <string name="help">Help</string>
     <string name="help_info">This program plays the raw H.264 video from a Raspberry Pi.\n\n
         Use the <b>raspivid</b> program to generate the video stream and the <b>nc</b> program to send
