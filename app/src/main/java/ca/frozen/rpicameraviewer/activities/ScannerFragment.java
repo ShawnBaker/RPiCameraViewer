@@ -198,7 +198,7 @@ public class ScannerFragment extends DialogFragment
 			settings = Utils.getSettings();
 			device = 0;
 			numDone = 0;
-			cameras = Utils.getNetworkCameras(network);
+			cameras = Utils.getNetworkCameras(network, false);
 			newCameras = new ArrayList<>();
 			Log.info("onPreExecute: " + network + "," + ipAddress + "," + settings.toString());
 		}

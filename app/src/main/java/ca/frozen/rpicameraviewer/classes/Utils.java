@@ -35,6 +35,11 @@ import ca.frozen.rpicameraviewer.R;
 
 public class Utils
 {
+	// public constants
+	public final static String IpAddressRegex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
+	public final static String HostnameRegex = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$";
+
+	// local variables
 	private static Settings settings = null;
 	private static List<Camera> cameras = null;
 
@@ -198,7 +203,7 @@ public class Utils
 	//******************************************************************************
 	// getNetworkCameras
 	//******************************************************************************
-	public static List<Camera> getNetworkCameras(String network)
+	public static List<Camera> getNetworkCameras(String network, boolean includeHostnames)
 	{
 		loadData();
 
@@ -206,7 +211,8 @@ public class Utils
 		List<Camera> networkCameras = new ArrayList<>();
 		for (Camera camera : cameras)
 		{
-			if (camera.network.equals(network))
+			if ((isIpAddress(camera.address) && camera.network.equals(network)) ||
+				(includeHostnames && isHostname(camera.address)))
 			{
 				networkCameras.add(camera);
 			}
@@ -291,6 +297,22 @@ public class Utils
 			address += ":" + port;
 		}
 		return address;
+	}
+
+	//******************************************************************************
+	// isIpAddress
+	//******************************************************************************
+	public static boolean isIpAddress(String address)
+	{
+		return address.matches(IpAddressRegex);
+	}
+
+	//******************************************************************************
+	// isHostname
+	//******************************************************************************
+	public static boolean isHostname(String address)
+	{
+		return address.matches(HostnameRegex);
 	}
 
 	//******************************************************************************

@@ -52,7 +52,7 @@ public class CameraAdapter extends BaseAdapter
 		{
 			String network = Utils.getNetworkName();
 			showAllCameras = network == null || network.isEmpty();
-			cameras = showAllCameras ? Utils.getCameras() : Utils.getNetworkCameras(network);
+			cameras = showAllCameras ? Utils.getCameras() : Utils.getNetworkCameras(network, true);
 		}
 		showNetwork = showAllCameras;
 		notifyDataSetChanged();
@@ -127,7 +127,11 @@ public class CameraAdapter extends BaseAdapter
 				// set the views
 				name.setText(camera.name);
 				String fullAddress = Utils.getFullAddress(camera.address, camera.port);
-				address.setText((showNetwork ? (camera.network + ":") : "") + fullAddress);
+				if (showNetwork && Utils.isIpAddress(camera.address))
+				{
+					fullAddress = camera.network + ":" + fullAddress;
+				}
+				address.setText(fullAddress);
 			}
 		}
 		else

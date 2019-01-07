@@ -23,10 +23,6 @@ public class CameraActivity extends AppCompatActivity
 	// public constants
 	public final static String CAMERA = "camera";
 
-	// local constants
-	private final static String ValidIpAddressRegex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
-	private final static String ValidHostnameRegex = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$";
-
 	// instance variables
 	private Camera camera;
 	private EditText nameEdit;
@@ -144,7 +140,7 @@ public class CameraActivity extends AppCompatActivity
 		}
 
 		// check the address
-		if (!editedCamera.address.matches(ValidIpAddressRegex) && !editedCamera.address.matches(ValidHostnameRegex))
+		if (!Utils.isIpAddress(editedCamera.address) && !Utils.isHostname(editedCamera.address))
 		{
 			App.error(this, R.string.error_bad_address);
 			return null;
