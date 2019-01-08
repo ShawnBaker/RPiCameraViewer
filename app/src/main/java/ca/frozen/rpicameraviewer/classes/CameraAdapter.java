@@ -126,12 +126,12 @@ public class CameraAdapter extends BaseAdapter
 
 				// set the views
 				name.setText(camera.name);
-				String fullAddress = Utils.getFullAddress(camera.address, camera.port);
+				String addr = camera.address + ":" + camera.port;
 				if (showNetwork && Utils.isIpAddress(camera.address))
 				{
-					fullAddress = camera.network + ":" + fullAddress;
+					addr = camera.network + ":" + addr;
 				}
-				address.setText(fullAddress);
+				address.setText(addr);
 			}
 		}
 		else

@@ -281,25 +281,6 @@ public class Utils
 	}
 
 	//******************************************************************************
-	// getFullAddress
-	//******************************************************************************
-	public static String getFullAddress(String baseAddress, int port)
-	{
-		String address = baseAddress;
-		int i = address.indexOf("://");
-		i = address.indexOf("/", (i != -1) ? (i + 3) : 0);
-		if (i != -1)
-		{
-			address = address.substring(0, i) + ":" + port + address.substring(i);
-		}
-		else
-		{
-			address += ":" + port;
-		}
-		return address;
-	}
-
-	//******************************************************************************
 	// isIpAddress
 	//******************************************************************************
 	public static boolean isIpAddress(String address)
