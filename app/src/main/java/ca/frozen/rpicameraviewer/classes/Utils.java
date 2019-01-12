@@ -211,8 +211,8 @@ public class Utils
 		List<Camera> networkCameras = new ArrayList<>();
 		for (Camera camera : cameras)
 		{
-			if ((isIpAddress(camera.address) && camera.network.equals(network)) ||
-				(includeHostnames && isHostname(camera.address)))
+			Boolean isIp = isIpAddress(camera.address);
+			if ((isIp && camera.network.equals(network)) || (!isIp && includeHostnames))
 			{
 				networkCameras.add(camera);
 			}
