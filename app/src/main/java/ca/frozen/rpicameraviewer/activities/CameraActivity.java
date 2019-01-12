@@ -1,4 +1,4 @@
-// Copyright © 2016-2018 Shawn Baker using the MIT License.
+// Copyright © 2016-2019 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
 import android.net.Uri;
