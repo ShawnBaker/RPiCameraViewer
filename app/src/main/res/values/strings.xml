@@ -15,7 +15,7 @@
     <string name="email">Email</string>
     <string name="email_address">support@frozen.ca</string>
     <string name="email_log_files">Email Log Files</string>
-    <string name="error_bad_address">The address is not a valid URL.</string>
+    <string name="error_bad_address">The address is not a valid IP address or host name.</string>
     <string name="error_bad_port" formatted="false">The port number must be between %d and %d.</string>
     <string name="error_bad_timeout" formatted="false">The scan timeout must be between %d and %d.</string>
     <string name="error_couldnt_connect">Couldn\'t connect to the camera.</string>
