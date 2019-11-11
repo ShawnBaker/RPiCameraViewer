@@ -56,7 +56,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	public final static String FULL_SCREEN = "full_screen";
 
 	// local constants
-	private final static float MIN_ZOOM = 0.1f;
+	private final static float MIN_ZOOM = 1;
 	private final static float MAX_ZOOM = 10;
 	private final static int FADEOUT_TIMEOUT = 8000;
 	private final static int FADEOUT_ANIMATION_TIME = 500;
