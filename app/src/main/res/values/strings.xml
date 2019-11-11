@@ -55,7 +55,7 @@
     <string name="no_file_1">Log file 1 doesn\'t exist.</string>
     <string name="no_file_2">Log file 2 doesn\'t exist.</string>
     <string name="no_network">no\nnetwork</string>
-    <string name="num_new_cameras_found" formatted="false">Number of new cameras found: %d</string>
+    <string name="num_new_cameras_found" formatted="false">New cameras found: %d</string>
     <string name="ok">OK</string>
     <string name="ok_to_clear_logs">Are you sure you want to delete the contents of the log files?</string>
     <string name="ok_to_delete_all_cameras">Are you sure you want to delete all the cameras?</string>
