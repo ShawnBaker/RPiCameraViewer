@@ -62,6 +62,12 @@ goto usage
 call :export_windows chevron chevron
 call :export_windows chevron_pressed chevron
 call :export_windows chevron_disabled chevron
+call :export_windows close_button close_button
+call :export_windows close_disabled_button close_button
+call :export_windows close_pressed_button close_button
+call :export_windows snapshot_button snapshot_button
+call :export_windows snapshot_disabled_button snapshot_button
+call :export_windows snapshot_pressed_button snapshot_button
 call :export_windows trash trash
 call :export_windows trash_pressed trash
 call :export_windows trash_disabled trash
@@ -88,10 +94,11 @@ set FILE_NAME=%WINDOWS_PATH%\%~2\%~1.scale
 inkscape -f images.svg -i %~1 -j -d 90 -e %FILE_NAME%-100.png
 inkscape -f images.svg -i %~1 -j -d 112.5 -e %FILE_NAME%-125.png
 inkscape -f images.svg -i %~1 -j -d 135 -e %FILE_NAME%-150.png
-inkscape -f images.svg -i %~1 -j -d 157.5 -e %FILE_NAME%-175.png
 inkscape -f images.svg -i %~1 -j -d 180 -e %FILE_NAME%-200.png
 inkscape -f images.svg -i %~1 -j -d 202.5 -e %FILE_NAME%-225.png
+REM inkscape -f images.svg -i %~1 -j -d 225 -e %FILE_NAME%-250.png
 inkscape -f images.svg -i %~1 -j -d 270 -e %FILE_NAME%-300.png
+REM inkscape -f images.svg -i %~1 -j -d 315 -e %FILE_NAME%-350.png
 inkscape -f images.svg -i %~1 -j -d 360 -e %FILE_NAME%-400.png
 goto :eof
 
