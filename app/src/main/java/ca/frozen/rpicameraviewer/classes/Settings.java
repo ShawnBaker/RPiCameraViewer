@@ -19,7 +19,8 @@ public class Settings implements Parcelable
 	public final static int DEFAULT_TIMEOUT = 500;
 	public final static int MIN_PORT = 1024;
 	public final static int MAX_PORT = 65535;
-	public final static int DEFAULT_PORT = 5001;
+	public final static int DEFAULT_PORT = 5000;
+	public final static int DEFAULT_FRAME_ROTATION = 0;
 
 	// local constants
 	//private final static String TAG = "Settings";
@@ -29,6 +30,7 @@ public class Settings implements Parcelable
 	public boolean showAllCameras;
 	public int scanTimeout;
 	public int port;
+	public int frameRotation;
 
 	//******************************************************************************
 	// Settings
@@ -57,6 +59,7 @@ public class Settings implements Parcelable
 		showAllCameras = settings.showAllCameras;
 		scanTimeout = settings.scanTimeout;
 		port = settings.port;
+		frameRotation = settings.frameRotation;
 		//Log.d(TAG, "settings: " + toString());
 	}
 
@@ -71,6 +74,7 @@ public class Settings implements Parcelable
 			cameraName = obj.getString("cameraName");
 			showAllCameras = obj.getBoolean("showAllCameras");
 			scanTimeout = obj.getInt("scanTimeout");
+			frameRotation = obj.getInt("frameRotation");
 		}
 		catch (JSONException ex)
 		{
@@ -108,6 +112,7 @@ public class Settings implements Parcelable
 		showAllCameras = false;
 		scanTimeout = DEFAULT_TIMEOUT;
 		port = DEFAULT_PORT;
+		frameRotation = DEFAULT_FRAME_ROTATION;
 	}
 
 	//******************************************************************************
@@ -120,6 +125,7 @@ public class Settings implements Parcelable
 		dest.writeInt(showAllCameras ? 1 : 0);
 		dest.writeInt(scanTimeout);
 		dest.writeInt(port);
+		dest.writeInt(frameRotation);
 	}
 
 	//******************************************************************************
@@ -131,6 +137,7 @@ public class Settings implements Parcelable
 		showAllCameras = in.readInt() != 0;
 		scanTimeout = in.readInt();
 		port = in.readInt();
+		frameRotation = in.readInt();
 	}
 
 	//******************************************************************************
@@ -150,6 +157,7 @@ public class Settings implements Parcelable
 		{
 			return new Settings(in);
 		}
+
 		public Settings[] newArray(int size)
 		{
 			return new Settings[size];
@@ -162,7 +170,7 @@ public class Settings implements Parcelable
 	@Override
 	public String toString()
 	{
-		return cameraName + "," + showAllCameras + "," + scanTimeout + "," + port;
+		return cameraName + "," + showAllCameras + "," + scanTimeout + "," + port + "," + frameRotation;
 	}
 
 	//******************************************************************************
@@ -173,16 +181,20 @@ public class Settings implements Parcelable
 		try
 		{
 			JSONObject obj = new JSONObject();
+
 			obj.put("cameraName", cameraName);
 			obj.put("showAllCameras", showAllCameras);
 			obj.put("scanTimeout", scanTimeout);
 			obj.put("port", port);
+			obj.put("frameRotation", frameRotation);
+
 			return obj;
 		}
 		catch(JSONException ex)
 		{
 			ex.printStackTrace();
 		}
+
 		return null;
 	}
 }

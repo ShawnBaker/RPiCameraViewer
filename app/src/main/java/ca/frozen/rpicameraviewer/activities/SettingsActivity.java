@@ -20,6 +20,7 @@ public class SettingsActivity extends AppCompatActivity
 	private EditText cameraName;
 	private EditText scanTimeout;
 	private EditText port;
+	private EditText frameRotation;
 	private Switch showAllNetworks;
 	private Settings settings;
 
@@ -51,6 +52,9 @@ public class SettingsActivity extends AppCompatActivity
 		port = findViewById(R.id.settings_port);
 		port.setText(Integer.toString(settings.port));
 
+		frameRotation = findViewById(R.id.settings_frame_rotation);
+		frameRotation.setText(Integer.toString(settings.frameRotation));
+
 		showAllNetworks = findViewById(R.id.settings_show_all_networks);
 		showAllNetworks.setChecked(settings.showAllCameras);
 	}
@@ -62,11 +66,18 @@ public class SettingsActivity extends AppCompatActivity
 	protected void onSaveInstanceState(Bundle state)
 	{
 		settings.cameraName = cameraName.getText().toString().trim();
+
 		String scanTimeoutString = scanTimeout.getText().toString();
 		settings.scanTimeout = scanTimeoutString.isEmpty() ? Settings.DEFAULT_TIMEOUT : Integer.parseInt(scanTimeoutString);
+
 		String portString = port.getText().toString();
 		settings.port = portString.isEmpty() ? Settings.DEFAULT_PORT : Integer.parseInt(portString);
+
 		settings.showAllCameras = showAllNetworks.isChecked();
+
+		String frameRotationString = frameRotation.getText().toString();
+		settings.frameRotation = frameRotationString.isEmpty() ? Settings.DEFAULT_FRAME_ROTATION : Integer.parseInt(frameRotationString);
+
 		state.putParcelable("settings", settings);
 		super.onSaveInstanceState(state);
 	}
@@ -133,6 +144,10 @@ public class SettingsActivity extends AppCompatActivity
 			App.error(this, String.format(getString(R.string.error_bad_port), Settings.MIN_PORT, Settings.MAX_PORT));
 			return false;
 		}
+
+		// get the rotation
+		settings.frameRotation = Utils.getNumber(frameRotation);
+		//TODO: check rotation?
 
 		// get the show all cameras flag
 		settings.showAllCameras = showAllNetworks.isChecked();

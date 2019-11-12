@@ -16,7 +16,7 @@
         android:id="@+id/video_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|left"
+        android:layout_gravity="bottom|start"
         android:padding="5dp"
         android:textColor="@color/accent"
         android:textSize="32sp" />
@@ -33,7 +33,7 @@
         android:id="@+id/video_close"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:layout_gravity="top|right"
+        android:layout_gravity="top|end"
         android:layout_margin="5dp"
         android:background="@drawable/close_button" />
 
@@ -41,8 +41,16 @@
         android:id="@+id/video_snapshot"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:layout_gravity="bottom|right"
+        android:layout_gravity="bottom|end"
         android:layout_margin="5dp"
         android:background="@drawable/snapshot_button" />
+
+    <Button
+        android:id="@+id/frame_rotate"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="5dp"
+        android:background="@android:drawable/ic_menu_rotate"/>
 
 </FrameLayout>

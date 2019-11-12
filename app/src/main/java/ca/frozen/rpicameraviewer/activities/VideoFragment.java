@@ -38,6 +38,7 @@ import ca.frozen.library.views.ZoomPanTextureView;
 import ca.frozen.rpicameraviewer.App;
 import ca.frozen.rpicameraviewer.R;
 import ca.frozen.rpicameraviewer.classes.Camera;
+import ca.frozen.rpicameraviewer.classes.Settings;
 import ca.frozen.rpicameraviewer.classes.SpsParser;
 import ca.frozen.rpicameraviewer.classes.TcpIpReader;
 import ca.frozen.rpicameraviewer.classes.Utils;
@@ -69,10 +70,11 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	private DecoderThread decoder;
 	private ZoomPanTextureView textureView;
 	private TextView nameView, messageView;
-	private Button closeButton, snapshotButton;
+	private Button closeButton, snapshotButton, frameRotateButton;
 	private Runnable fadeInRunner, fadeOutRunner, finishRunner, startVideoRunner;
 	private Handler fadeInHandler, fadeOutHandler, finishHandler, startVideoHandler;
 	private OnFadeListener fadeListener;
+	private Settings settings;
 
 	//******************************************************************************
 	// newInstance
@@ -105,6 +107,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		Utils.loadData();
 
 		// get the parameters
+		settings = Utils.getSettings();
 		camera = getArguments().getParcelable(CAMERA);
 		fullScreen = getArguments().getBoolean(FULL_SCREEN);
 		Log.info("camera: " + camera.toString());
@@ -223,6 +226,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		textureView = view.findViewById(R.id.video_surface);
 		textureView.setSurfaceTextureListener(this);
 		textureView.setZoomRange(MIN_ZOOM, MAX_ZOOM);
+		textureView.setRotation(settings.frameRotation);
 		textureView.setOnTouchListener(new View.OnTouchListener()
 		{
 			@Override
@@ -276,6 +280,15 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 				}
 			}
 		});
+
+		frameRotateButton = view.findViewById(R.id.frame_rotate);
+        frameRotateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                rotateFrame();
+            }
+        });
+
 
 		// adjust the controls to account for the navigation and status bars
 		if (fullScreen)
@@ -508,6 +521,11 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		Toast toast = Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT);
 		toast.show();
 	}
+
+	private void rotateFrame()
+    {
+        textureView.setRotation(textureView.getRotation()+90);
+    }
 
 	//******************************************************************************
 	// stop
