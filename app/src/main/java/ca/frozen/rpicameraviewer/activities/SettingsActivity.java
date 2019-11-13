@@ -23,6 +23,8 @@ public class SettingsActivity extends AppCompatActivity
 	private EditText frameRotation;
 	private Switch showAllNetworks;
 	private Settings settings;
+	private EditText telemetryPort;
+	private Switch showSilouette;
 
 	//******************************************************************************
 	// onCreate
@@ -57,6 +59,12 @@ public class SettingsActivity extends AppCompatActivity
 
 		showAllNetworks = findViewById(R.id.settings_show_all_networks);
 		showAllNetworks.setChecked(settings.showAllCameras);
+
+		telemetryPort = findViewById(R.id.telemetry_port);
+		telemetryPort.setText(Integer.toString(settings.telemetryPort));
+
+		showSilouette = findViewById(R.id.settings_show_silouette);
+		showSilouette.setChecked(settings.showSilouette);
 	}
 
 	//******************************************************************************
@@ -77,6 +85,11 @@ public class SettingsActivity extends AppCompatActivity
 
 		String frameRotationString = frameRotation.getText().toString();
 		settings.frameRotation = frameRotationString.isEmpty() ? Settings.DEFAULT_FRAME_ROTATION : Integer.parseInt(frameRotationString);
+
+		String telemetryPortString = telemetryPort.getText().toString();
+		settings.telemetryPort =  telemetryPortString.isEmpty() ? Settings.DEFAULT_TELEMETRY_PORT : Integer.parseInt(telemetryPortString);
+
+		settings.showSilouette = showSilouette.isChecked();
 
 		state.putParcelable("settings", settings);
 		super.onSaveInstanceState(state);
@@ -149,8 +162,18 @@ public class SettingsActivity extends AppCompatActivity
 		settings.frameRotation = Utils.getNumber(frameRotation);
 		//TODO: check rotation?
 
+		// get and check the telemetry port
+		settings.telemetryPort = Utils.getNumber(telemetryPort);
+		if (settings.telemetryPort < Settings.MIN_PORT || settings.telemetryPort > Settings.MAX_PORT)
+		{
+			App.error(this, String.format(getString(R.string.error_bad_telemetry_port), Settings.MIN_PORT, Settings.MAX_PORT));
+			return false;
+		}
+
 		// get the show all cameras flag
 		settings.showAllCameras = showAllNetworks.isChecked();
+
+		settings.showSilouette = showSilouette.isChecked();
 
 		// indicate success
 		return true;

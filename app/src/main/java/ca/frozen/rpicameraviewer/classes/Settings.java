@@ -21,6 +21,7 @@ public class Settings implements Parcelable
 	public final static int MAX_PORT = 65535;
 	public final static int DEFAULT_PORT = 5000;
 	public final static int DEFAULT_FRAME_ROTATION = 0;
+	public final static int DEFAULT_TELEMETRY_PORT = 5001;
 
 	// local constants
 	//private final static String TAG = "Settings";
@@ -31,6 +32,8 @@ public class Settings implements Parcelable
 	public int scanTimeout;
 	public int port;
 	public int frameRotation;
+	public int telemetryPort;
+	public boolean showSilouette;
 
 	//******************************************************************************
 	// Settings
@@ -60,6 +63,8 @@ public class Settings implements Parcelable
 		scanTimeout = settings.scanTimeout;
 		port = settings.port;
 		frameRotation = settings.frameRotation;
+		telemetryPort = settings.telemetryPort;
+		showSilouette = settings.showSilouette;
 		//Log.d(TAG, "settings: " + toString());
 	}
 
@@ -75,6 +80,8 @@ public class Settings implements Parcelable
 			showAllCameras = obj.getBoolean("showAllCameras");
 			scanTimeout = obj.getInt("scanTimeout");
 			frameRotation = obj.getInt("frameRotation");
+			telemetryPort = obj.getInt("telemetryPort");
+			showSilouette = obj.getBoolean("showSilouette");
 		}
 		catch (JSONException ex)
 		{
@@ -113,6 +120,8 @@ public class Settings implements Parcelable
 		scanTimeout = DEFAULT_TIMEOUT;
 		port = DEFAULT_PORT;
 		frameRotation = DEFAULT_FRAME_ROTATION;
+		telemetryPort = DEFAULT_TELEMETRY_PORT;
+		showSilouette = true;
 	}
 
 	//******************************************************************************
@@ -126,6 +135,8 @@ public class Settings implements Parcelable
 		dest.writeInt(scanTimeout);
 		dest.writeInt(port);
 		dest.writeInt(frameRotation);
+		dest.writeInt(telemetryPort);
+		dest.writeInt(showSilouette ? 1 : 0);
 	}
 
 	//******************************************************************************
@@ -138,6 +149,8 @@ public class Settings implements Parcelable
 		scanTimeout = in.readInt();
 		port = in.readInt();
 		frameRotation = in.readInt();
+		telemetryPort = in.readInt();
+		showSilouette = in.readInt() != 0;
 	}
 
 	//******************************************************************************
@@ -170,7 +183,7 @@ public class Settings implements Parcelable
 	@Override
 	public String toString()
 	{
-		return cameraName + "," + showAllCameras + "," + scanTimeout + "," + port + "," + frameRotation;
+		return cameraName + "," + showAllCameras + "," + scanTimeout + "," + port + "," + frameRotation + "," + telemetryPort + "," + showSilouette;
 	}
 
 	//******************************************************************************
@@ -187,6 +200,8 @@ public class Settings implements Parcelable
 			obj.put("scanTimeout", scanTimeout);
 			obj.put("port", port);
 			obj.put("frameRotation", frameRotation);
+			obj.put("telemetryPort", telemetryPort);
+			obj.put("showSilouette", showSilouette);
 
 			return obj;
 		}

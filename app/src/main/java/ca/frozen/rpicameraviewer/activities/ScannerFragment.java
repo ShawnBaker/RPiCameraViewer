@@ -25,11 +25,11 @@ import java.util.List;
 
 import ca.frozen.library.classes.Log;
 import ca.frozen.rpicameraviewer.App;
+import ca.frozen.rpicameraviewer.R;
 import ca.frozen.rpicameraviewer.classes.Camera;
 import ca.frozen.rpicameraviewer.classes.Settings;
 import ca.frozen.rpicameraviewer.classes.TcpIpReader;
 import ca.frozen.rpicameraviewer.classes.Utils;
-import ca.frozen.rpicameraviewer.R;
 
 public class ScannerFragment extends DialogFragment
 {

@@ -25,6 +25,7 @@ import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -69,6 +70,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	private boolean fullScreen;
 	private DecoderThread decoder;
 	private ZoomPanTextureView textureView;
+	private ImageView overlayView;
 	private TextView nameView, messageView;
 	private Button closeButton, snapshotButton, frameRotateButton;
 	private Runnable fadeInRunner, fadeOutRunner, finishRunner, startVideoRunner;
@@ -247,6 +249,16 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 				return false;
 			}
 		});
+
+		overlayView = view.findViewById(R.id.overlay_surface);
+
+		if(settings.showSilouette)
+		{
+			overlayView.setVisibility(View.VISIBLE);
+			overlayView.setRotation(settings.frameRotation);
+		}
+		else
+			overlayView.setVisibility(View.GONE);
 
 		// create the close button listener
 		closeButton = view.findViewById(R.id.video_close);
@@ -522,10 +534,17 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		toast.show();
 	}
 
-	private void rotateFrame()
+	public void rotateFrame()
     {
         textureView.setRotation(textureView.getRotation()+90);
+		overlayView.setRotation(overlayView.getRotation()+90);
     }
+
+    public void rotateFrame(int rotation)
+	{
+		textureView.setRotation(rotation);
+		overlayView.setRotation(rotation);
+	}
 
 	//******************************************************************************
 	// stop

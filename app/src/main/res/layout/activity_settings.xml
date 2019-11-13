@@ -85,8 +85,6 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="8dp"
             android:orientation="horizontal" >
 
             <TextView
@@ -121,6 +119,45 @@
                 android:maxEms="6"
                 android:maxLength="4"
                 android:inputType="number" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:text="@string/telemetry_port"
+                android:layout_width="@dimen/prompt_width"
+                android:layout_height="wrap_content"
+                android:textSize="16sp" />
+
+            <EditText
+                android:id="@+id/telemetry_port"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="6"
+                android:maxEms="6"
+                android:maxLength="5"
+                android:inputType="number"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:text="@string/show_silouette"
+                android:layout_width="@dimen/prompt_width"
+                android:layout_height="wrap_content"
+                android:textSize="16sp" />
+
+            <Switch
+                android:id="@+id/settings_show_silouette"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
         </LinearLayout>
 
     </LinearLayout>

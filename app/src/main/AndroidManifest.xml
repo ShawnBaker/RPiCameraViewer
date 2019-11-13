@@ -74,6 +74,9 @@
                 android:resource="@xml/filepaths" />
 
         </provider>
+        <service
+            android:name=".TelemetryService"
+            android:label="@string/telemetry_service_label" />
     </application>
 
 </manifest>
