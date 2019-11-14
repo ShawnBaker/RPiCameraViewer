@@ -6,6 +6,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.SurfaceTexture;
 import android.hardware.display.DisplayManager;
 import android.media.MediaActionSound;
@@ -255,6 +259,8 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		if(settings.showSilouette)
 		{
 			overlayView.setVisibility(View.VISIBLE);
+			Bitmap _bmp = createOverlay(0,0);
+			overlayView.setImageBitmap(_bmp);
 			overlayView.setRotation(settings.frameRotation);
 		}
 		else
@@ -564,6 +570,36 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 			catch (Exception ex) {}
 			decoder = null;
 		}
+	}
+
+	private Bitmap createOverlay(int width, int height)
+	{
+		//TODO: create bitmap
+		final int WIDTH = 640;
+		final int HEIGHT = 480;
+		final int STROKE_SIZE = 8;
+		final int BAR_WIDTH = 16;
+
+		Bitmap _bmp = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.ARGB_8888);
+
+		final Canvas _canvas = new Canvas(_bmp);
+		final Paint _paint = new Paint();
+
+		_paint.setColor(Color.WHITE);
+		_paint.setAlpha(255);
+		_paint.setAntiAlias(true);
+		_paint.setStyle(Paint.Style.FILL);
+		_paint.setStrokeWidth(STROKE_SIZE);
+
+		_canvas.drawLine(WIDTH/4,HEIGHT/2,0,HEIGHT, _paint);
+		_canvas.drawLine(3*WIDTH/4,HEIGHT/2, WIDTH, HEIGHT, _paint);
+
+		_canvas.drawLine(WIDTH/4,HEIGHT/2,(WIDTH/4)+BAR_WIDTH,HEIGHT/2, _paint);
+		_canvas.drawLine(3*WIDTH/4,HEIGHT/2, (3*WIDTH/4)-BAR_WIDTH, HEIGHT/2, _paint);
+		_canvas.drawLine(WIDTH/4,HEIGHT/2,(WIDTH/4)+BAR_WIDTH,HEIGHT/2, _paint);
+		_canvas.drawLine(3*WIDTH/4,HEIGHT/2, (3*WIDTH/4)-BAR_WIDTH, HEIGHT/2, _paint);
+
+		return _bmp;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////

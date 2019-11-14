@@ -19,7 +19,7 @@
         android:layout_gravity="center"
         android:alpha="0.5"
         android:contentDescription="overlay"
-        android:rotation="180"
+        android:rotation="0"
         android:scaleType="fitCenter"
         android:visibility="visible"
         app:srcCompat="@drawable/overlay" />

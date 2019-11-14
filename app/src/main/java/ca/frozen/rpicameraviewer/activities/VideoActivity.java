@@ -47,7 +47,7 @@ public class VideoActivity extends AppCompatActivity implements VideoFragment.On
 				new PacketParser.PacketDescriptor<Integer>('F', 4, true, 1, 2),
 				new PacketParser.PacketDescriptor<Integer>('B', 4, true, 1, 2),
 				new PacketParser.PacketDescriptor<Integer>('P', 8, true, 1, 4),
-				new PacketParser.PacketDescriptor<Integer>('O', 2)
+				new PacketParser.PacketDescriptor<Integer>('O', 4)
 		);
 
 		telemetryReceiver = new TelemetryReceiver();

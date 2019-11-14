@@ -21,7 +21,7 @@ public class Settings implements Parcelable
 	public final static int MAX_PORT = 65535;
 	public final static int DEFAULT_PORT = 5000;
 	public final static int DEFAULT_FRAME_ROTATION = 0;
-	public final static int DEFAULT_TELEMETRY_PORT = 5001;
+	public final static int DEFAULT_TELEMETRY_PORT = 5555;
 
 	// local constants
 	//private final static String TAG = "Settings";
