@@ -6,7 +6,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -76,7 +75,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 	private ZoomPanTextureView textureView;
 	private ImageView overlayView;
 	private TextView nameView, messageView;
-	private Button closeButton, snapshotButton, frameRotateButton;
+	private Button closeButton, snapshotButton, rotateButton;
 	private Runnable fadeInRunner, fadeOutRunner, finishRunner, startVideoRunner;
 	private Handler fadeInHandler, fadeOutHandler, finishHandler, startVideoHandler;
 	private OnFadeListener fadeListener;
@@ -232,7 +231,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		textureView = view.findViewById(R.id.video_surface);
 		textureView.setSurfaceTextureListener(this);
 		textureView.setZoomRange(MIN_ZOOM, MAX_ZOOM);
-		textureView.setRotation(settings.frameRotation);
+		textureView.setRotation(camera.rotation);
 		textureView.setOnTouchListener(new View.OnTouchListener()
 		{
 			@Override
@@ -261,7 +260,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 			overlayView.setVisibility(View.VISIBLE);
 			Bitmap _bmp = createOverlay(0,0);
 			overlayView.setImageBitmap(_bmp);
-			overlayView.setRotation(settings.frameRotation);
+			overlayView.setRotation(camera.rotation);
 		}
 		else
 			overlayView.setVisibility(View.GONE);
@@ -299,11 +298,11 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 			}
 		});
 
-		frameRotateButton = view.findViewById(R.id.frame_rotate);
-        frameRotateButton.setOnClickListener(new View.OnClickListener() {
+		rotateButton = view.findViewById(R.id.camera_rotate);
+        rotateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                rotateFrame();
+                rotateCamera();
             }
         });
 
@@ -540,16 +539,24 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 		toast.show();
 	}
 
-	public void rotateFrame()
+	public void rotateCamera()
     {
         textureView.setRotation(textureView.getRotation()+90);
 		overlayView.setRotation(overlayView.getRotation()+90);
     }
 
-    public void rotateFrame(int rotation)
+    public void rotateCamera(int rotation, boolean relative)
 	{
-		textureView.setRotation(rotation);
-		overlayView.setRotation(rotation);
+		if(!relative)
+		{
+			textureView.setRotation(rotation);
+			overlayView.setRotation(rotation);
+		}
+		else
+		{
+			textureView.setRotation(camera.rotation + rotation);
+			overlayView.setRotation(camera.rotation + rotation);
+		}
 	}
 
 	//******************************************************************************
@@ -574,7 +581,6 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 
 	private Bitmap createOverlay(int width, int height)
 	{
-		//TODO: create bitmap
 		final int WIDTH = 640;
 		final int HEIGHT = 480;
 		final int STROKE_SIZE = 8;

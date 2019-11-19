@@ -79,4 +79,6 @@
     <string name="telemetry_service_label">Telemetry Service</string>
     <string name="telemetry_port">Telemetry port</string>
     <string name="show_silouette">Show silouette</string>
+    <string name="camera_rotation_label" >Camera rotation</string>
+    <string name="backward">Backward</string>
 </resources>

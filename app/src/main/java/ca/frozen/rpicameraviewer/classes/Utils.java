@@ -16,6 +16,7 @@ import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.text.format.Formatter;
 import android.widget.EditText;
+import android.widget.Switch;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -201,6 +202,15 @@ public class Utils
 	}
 
 	//******************************************************************************
+	// getDefaultRotation
+	//******************************************************************************
+	public static int getDefaultRotation()
+	{
+		loadData();
+		return settings.frameRotation;
+	}
+
+	//******************************************************************************
 	// getNetworkCameras
 	//******************************************************************************
 	public static List<Camera> getNetworkCameras(String network, boolean includeHostnames)
@@ -314,6 +324,15 @@ public class Utils
 				value = -1;
 			}
 		}
+		return value;
+	}
+
+	//******************************************************************************
+	// getBoolean
+	//******************************************************************************
+	public static boolean getBoolean(Switch edit)
+	{
+		boolean value = edit.isChecked();
 		return value;
 	}
 

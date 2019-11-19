@@ -44,6 +44,7 @@ public class CameraAdapter extends BaseAdapter
 	public void refresh()
 	{
 		boolean showAllCameras = !Utils.connectedToNetwork() || Utils.getSettings().showAllCameras;
+
 		if (showAllCameras)
 		{
 			cameras = Utils.getCameras();
@@ -54,6 +55,7 @@ public class CameraAdapter extends BaseAdapter
 			showAllCameras = network == null || network.isEmpty();
 			cameras = showAllCameras ? Utils.getCameras() : Utils.getNetworkCameras(network, true);
 		}
+
 		showNetwork = showAllCameras;
 		notifyDataSetChanged();
 	}
@@ -104,6 +106,7 @@ public class CameraAdapter extends BaseAdapter
 
 		// inflate the view if necessary
 		final Context context = parent.getContext();
+
 		if (convertView == null)
 		{
 			LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -114,6 +117,7 @@ public class CameraAdapter extends BaseAdapter
 		{
 			// get the camera for this row
 			Camera camera = getItem(position);
+
 			if (camera != null)
 			{
 				// get the views
@@ -127,10 +131,12 @@ public class CameraAdapter extends BaseAdapter
 				// set the views
 				name.setText(camera.name);
 				String addr = camera.address + ":" + camera.port;
+
 				if (showNetwork && Utils.isIpAddress(camera.address))
 				{
 					addr = camera.network + ":" + addr;
 				}
+
 				address.setText(addr);
 			}
 		}

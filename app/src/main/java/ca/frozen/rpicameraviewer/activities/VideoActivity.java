@@ -11,9 +11,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import java.util.LinkedList;
-import java.util.Queue;
-
 import ca.frozen.library.classes.Log;
 import ca.frozen.rpicameraviewer.TelemetryService;
 import ca.frozen.rpicameraviewer.classes.Camera;
@@ -204,9 +201,9 @@ public class VideoActivity extends AppCompatActivity implements VideoFragment.On
 								final int value =  telemetryParser.getValue();
 
 								if(value==0)
-									videoFragment.rotateFrame(0);
+									videoFragment.rotateCamera(0, false);
 								else
-									videoFragment.rotateFrame(180);
+									videoFragment.rotateCamera(180, false);
 							}
 						});
 						break;

@@ -18,6 +18,22 @@ public class Camera implements Comparable<Camera>, Parcelable
 	public String name;
 	public String address;
 	public int port;
+	public int rotation;
+	public boolean backward;
+
+	//******************************************************************************
+	// Camera
+	//******************************************************************************
+	public Camera(String network, String address, int port, int rotation, boolean backward)
+	{
+		this.network = network;
+		this.name = "";
+		this.address = address;
+		this.port = port;
+		this.rotation = rotation;
+		this.backward = backward;
+		//Log.d(TAG, "net/addr/port/rotation: " + toString());
+	}
 
 	//******************************************************************************
 	// Camera
@@ -28,7 +44,9 @@ public class Camera implements Comparable<Camera>, Parcelable
 		this.name = "";
 		this.address = address;
 		this.port = port;
-		//Log.d(TAG, "net/addr/port: " + toString());
+		this.rotation = 0;
+		this.backward = false;
+		//Log.d(TAG, "net/addr/port/rotation: " + toString());
 	}
 
 	//******************************************************************************
@@ -36,10 +54,12 @@ public class Camera implements Comparable<Camera>, Parcelable
 	//******************************************************************************
 	public Camera(String name, int port)
 	{
-		network = Utils.getNetworkName();
+		this.network = Utils.getNetworkName();
 		this.name = name;
-		address = "";
+		this.address = "";
 		this.port = port;
+		this.rotation = 0;
+		this.backward = false;
 		//Log.d(TAG, "name/port: " + toString());
 	}
 
@@ -52,6 +72,8 @@ public class Camera implements Comparable<Camera>, Parcelable
 		name = camera.name;
 		address = camera.name;
 		port = camera.port;
+		rotation = camera.rotation;
+		backward = camera.backward;
 		//Log.d(TAG, "camera: " + toString());
 	}
 
@@ -86,6 +108,8 @@ public class Camera implements Comparable<Camera>, Parcelable
 		{
 			address = obj.getString("address");
 			port = obj.getInt("port");
+			rotation = obj.getInt("rotation");
+			backward = obj.getBoolean("backward");
 		}
 		catch (JSONException ex)
 		{
@@ -95,11 +119,15 @@ public class Camera implements Comparable<Camera>, Parcelable
 				JSONObject source = obj.getJSONObject("source");
 				address = source.getString("address");
 				port = source.getInt("port");
+				rotation = source.getInt("rotation");
+				backward = source.getBoolean("backward");
 			}
 			catch (JSONException ex2)
 			{
 				address = "";
 				port = Settings.DEFAULT_PORT;
+				rotation = Settings.DEFAULT_FRAME_ROTATION;
+				backward = false;
 			}
 		}
 		//Log.d(TAG, "json: " + toString());
@@ -114,6 +142,8 @@ public class Camera implements Comparable<Camera>, Parcelable
 		name = Utils.getDefaultCameraName();
 		address = Utils.getBaseIpAddress();
 		port = Utils.getDefaultPort();
+		rotation = Utils.getDefaultRotation();
+		backward = false;
 	}
 
 	//******************************************************************************
@@ -126,6 +156,8 @@ public class Camera implements Comparable<Camera>, Parcelable
 		dest.writeString(name);
 		dest.writeString(address);
 		dest.writeInt(port);
+		dest.writeInt(rotation);
+		dest.writeInt(backward?1:0);
 	}
 
 	//******************************************************************************
@@ -137,6 +169,8 @@ public class Camera implements Comparable<Camera>, Parcelable
 		name = in.readString();
 		address = in.readString();
 		port = in.readInt();
+		rotation = in.readInt();
+		backward = (in.readInt() == 1);
 	}
 
 	//******************************************************************************
@@ -156,6 +190,7 @@ public class Camera implements Comparable<Camera>, Parcelable
 		{
 			return new Camera(in);
 		}
+
 		public Camera[] newArray(int size)
 		{
 			return new Camera[size];
@@ -172,6 +207,7 @@ public class Camera implements Comparable<Camera>, Parcelable
 		{
 			return compareTo((Camera)otherCamera) == 0;
 		}
+
 		return false;
     }
 
@@ -182,18 +218,32 @@ public class Camera implements Comparable<Camera>, Parcelable
     public int compareTo(Camera camera)
     {
 		int result = 1;
+
 		if (camera != null)
 		{
 			result = name.compareTo(camera.name);
+
 			if (result == 0)
 			{
 				result = address.compareTo(camera.address);
+
 				if (result == 0)
 				{
 					result = port - camera.port;
+
 					if (result == 0)
 					{
 						result = network.compareTo(camera.network);
+
+						if(result == 0)
+						{
+							result = rotation - camera.rotation;
+
+							if(result == 0)
+							{
+								result = (backward == camera.backward)?0:1;
+							}
+						}
 					}
 				}
 			}
@@ -207,7 +257,7 @@ public class Camera implements Comparable<Camera>, Parcelable
     @Override
     public String toString()
     {
-        return name + "," + network + "," + address + "," + port;
+        return name + "," + network + "," + address + "," + port + "," + rotation + "," + backward;
     }
 
 	//******************************************************************************
@@ -222,12 +272,29 @@ public class Camera implements Comparable<Camera>, Parcelable
 			obj.put("name", name);
 			obj.put("address", address);
 			obj.put("port", port);
+			obj.put("rotation", rotation);
+			obj.put("backward", backward);
+
 			return obj;
 		}
 		catch(JSONException ex)
 		{
 			ex.printStackTrace();
 		}
+		
 		return null;
+	}
+
+	public enum Type {
+    	Optical,
+		IR,
+		IL
+	}
+
+	public enum Position {
+    	Front,
+		Backward,
+		Top,
+		Bottom
 	}
 }

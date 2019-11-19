@@ -103,6 +103,46 @@
 
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:text="@string/camera_rotation_label"
+                android:layout_width="@dimen/prompt_width"
+                android:layout_height="wrap_content"
+                android:textSize="16sp" />
+
+            <EditText
+                android:id="@+id/camera_rotation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="6"
+                android:maxEms="6"
+                android:maxLength="3"
+                android:inputType="number"
+                android:textSize="16sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:text="@string/backward"
+                android:layout_width="@dimen/prompt_width"
+                android:layout_height="wrap_content"
+                android:textSize="16sp" />
+
+            <Switch
+                android:id="@+id/camera_backward"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
     </LinearLayout>
 
 </ScrollView>

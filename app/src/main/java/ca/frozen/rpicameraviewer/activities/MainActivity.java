@@ -4,7 +4,9 @@ package ca.frozen.rpicameraviewer.activities;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -23,6 +25,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +36,8 @@ import ca.frozen.rpicameraviewer.classes.Camera;
 import ca.frozen.rpicameraviewer.classes.CameraAdapter;
 import ca.frozen.rpicameraviewer.classes.Utils;
 import ca.frozen.rpicameraviewer.R;
+
+import static android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT;
 
 public class MainActivity extends AppCompatActivity
 {
@@ -438,6 +443,29 @@ public class MainActivity extends AppCompatActivity
 		Intent intent = new Intent(getApplicationContext(), VideoActivity.class);
 		intent.putExtra(VideoActivity.CAMERA, camera);
 		startActivity(intent);
+
+		notifyCameraChange(camera);
+	}
+
+	//******************************************************************************
+	// notifyCameraChange
+	//******************************************************************************
+	public boolean notifyCameraChange(Camera camera) {
+		final String packageName = "it.robint.tux.vipergcs";
+
+		final PackageManager manager = getPackageManager();
+
+		final Intent intent = manager.getLaunchIntentForPackage(packageName);
+
+		if (intent == null)
+			return false;
+
+		intent.addCategory(Intent.CATEGORY_LAUNCHER);
+		intent.putExtra("BACKWARD_FLAG",camera.backward);
+
+		startActivity(intent);
+
+		return true;
 	}
 
 	//******************************************************************************

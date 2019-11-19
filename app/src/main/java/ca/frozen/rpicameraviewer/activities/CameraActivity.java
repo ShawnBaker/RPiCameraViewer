@@ -1,12 +1,12 @@
 // Copyright © 2016-2019 Shawn Baker using the MIT License.
 package ca.frozen.rpicameraviewer.activities;
 
-import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import java.util.List;
@@ -28,6 +28,9 @@ public class CameraActivity extends AppCompatActivity
 	private EditText nameEdit;
 	private EditText addressEdit;
 	private EditText portEdit;
+	private EditText rotationEdit;
+	private TextView networkEdit;
+	private Switch backwardEdit;
 
 	//******************************************************************************
 	// onCreate
@@ -51,16 +54,21 @@ public class CameraActivity extends AppCompatActivity
 		Log.info("camera: " + (camera.name.isEmpty() ? "new" : camera.name));
 
 		// get the controls
-		TextView network = findViewById(R.id.camera_network);
+		networkEdit = findViewById(R.id.camera_network);
 		nameEdit = findViewById(R.id.camera_name);
 		addressEdit = findViewById(R.id.camera_address);
 		portEdit = findViewById(R.id.camera_port);
+		rotationEdit = findViewById(R.id.camera_rotation);
+		backwardEdit = findViewById(R.id.camera_backward);
+
 
 		// initialize the control values
-		network.setText(camera.network);
+		networkEdit.setText(camera.network);
 		nameEdit.setText(camera.name);
 		addressEdit.setText(camera.address);
 		portEdit.setText(Integer.toString(camera.port));
+		rotationEdit.setText(Integer.toString(camera.rotation));
+		backwardEdit.setChecked(camera.backward);
 	}
 
 	//******************************************************************************
@@ -85,13 +93,16 @@ public class CameraActivity extends AppCompatActivity
 		if (id == R.id.action_save)
 		{
 			Camera editedCamera = getAndCheckEditedCamera();
+
 			if (editedCamera != null)
 			{
 				List<Camera> cameras = Utils.getCameras();
+
 				if (!camera.name.isEmpty())
 				{
 					cameras.remove(camera);
 				}
+
 				cameras.add(editedCamera);
 				Log.info("menu: save " + editedCamera.toString());
 				Utils.saveData();
@@ -113,6 +124,7 @@ public class CameraActivity extends AppCompatActivity
 
 		// get and check the camera name
 		editedCamera.name = nameEdit.getText().toString().trim();
+
 		if (editedCamera.name.isEmpty())
 		{
 			App.error(this, R.string.error_no_name);
@@ -124,6 +136,7 @@ public class CameraActivity extends AppCompatActivity
 		if (name.isEmpty() || !name.equals(editedCamera.name))
 		{
 			Camera existingCamera = Utils.findCamera(editedCamera.name);
+
 			if (existingCamera != null)
 			{
 				App.error(this, R.string.error_name_already_exists);
@@ -153,6 +166,14 @@ public class CameraActivity extends AppCompatActivity
 			App.error(this, String.format(getString(R.string.error_bad_port), Settings.MIN_PORT, Settings.MAX_PORT));
 			return null;
 		}
+
+		// get rotation
+		editedCamera.rotation = Utils.getNumber(rotationEdit);
+		// TODO: check rotation validity
+
+		// get backward
+		editedCamera.backward = Utils.getBoolean(backwardEdit);
+		// TODO: check?
 
 		// return the successfully edited camera
 		return editedCamera;
